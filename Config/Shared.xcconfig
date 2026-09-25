@@ -1,0 +1,7 @@
+// Settings shared by every build configuration of the BayenWorker app target.
+// NOTE: "//" starts a comment in xcconfig files, hence the "http:/$()/" trick in URLs.
+
+PRODUCT_BUNDLE_IDENTIFIER_BASE = ma.bayen.worker
+
+// "live" talks to API_BASE_URL, "mock" uses the in-memory MockAPIClient + simulated GPS near Casablanca.
+API_MODE = live

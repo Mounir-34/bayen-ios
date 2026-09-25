@@ -1,0 +1,87 @@
+{
+  "sourceLanguage" : "ar",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بيّن"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bayen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bayen"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "BayenWorker"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحتاج تطبيق بيّن إلى الكاميرا لالتقاط صور العمل مباشرة في مكان المهمة. لا يمكن استعمال صور قديمة."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bayen uses the camera to photograph the work live, at the task location. Old photos can't be used."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bayen utilise la caméra pour photographier le travail en direct, sur le lieu de la tâche. Les anciennes photos ne peuvent pas être utilisées."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحتاج تطبيق بيّن إلى موقعك أثناء استعمال التطبيق لإثبات أن الصور التُقطت في مكان المهمة ولحساب المسافة إليها."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bayen uses your location while you use the app to prove the photos were taken at the task location and to calculate the distance."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bayen utilise votre position pendant l'utilisation de l'app pour prouver que les photos sont prises sur le lieu de la tâche et calculer la distance."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

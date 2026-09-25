@@ -1,0 +1,504 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		6243C48879ADA18227307687 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1781F676DEDF5767F3243DB0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 99E3A65F4F675A4C8FFE1D70;
+			remoteInfo = BayenWorker;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		02C2AFB65BBF809A52DD2D76 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		4985E1FAC74B928B2B4E9330 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		718FF3472F0D3EE2F3A30EA3 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		789695E3F2B97A651F49D58C /* BayenWorkerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BayenWorkerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8E42256A89ABABDDA8DEA8F9 /* BayenWorker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BayenWorker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B414AEF4D058F99E792BC96E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		B8ECB9EA80B8459E9FB2193A /* Mock.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Mock.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		6BBD45D6D137D2D2B63F1DB7 /* BayenWorker */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BayenWorker;
+			sourceTree = "<group>";
+		};
+		8DA0FBAE3CD3E30F0429582E /* BayenWorkerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BayenWorkerTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6197050EF9E938EBBD8FB520 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		76535B6EEC56A51C79557182 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7806CD590FC22E1CCB4412FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8E42256A89ABABDDA8DEA8F9 /* BayenWorker.app */,
+				789695E3F2B97A651F49D58C /* BayenWorkerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		88932FD6DD0EDC80FBF1C921 = {
+			isa = PBXGroup;
+			children = (
+				6BBD45D6D137D2D2B63F1DB7 /* BayenWorker */,
+				8DA0FBAE3CD3E30F0429582E /* BayenWorkerTests */,
+				8FF14FE9FA3F948C0FBBF13C /* Config */,
+				7806CD590FC22E1CCB4412FF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		8FF14FE9FA3F948C0FBBF13C /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				02C2AFB65BBF809A52DD2D76 /* Shared.xcconfig */,
+				718FF3472F0D3EE2F3A30EA3 /* Debug.xcconfig */,
+				B8ECB9EA80B8459E9FB2193A /* Mock.xcconfig */,
+				B414AEF4D058F99E792BC96E /* Release.xcconfig */,
+				4985E1FAC74B928B2B4E9330 /* Info.plist */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		99E3A65F4F675A4C8FFE1D70 /* BayenWorker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5BEC55D452DBEA99476CD51A /* Build configuration list for PBXNativeTarget "BayenWorker" */;
+			buildPhases = (
+				B0F53FC2AFDA3376014A0A9B /* Sources */,
+				76535B6EEC56A51C79557182 /* Frameworks */,
+				7B3FC2D3640485997EC5329C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6BBD45D6D137D2D2B63F1DB7 /* BayenWorker */,
+			);
+			name = BayenWorker;
+			packageProductDependencies = (
+			);
+			productName = BayenWorker;
+			productReference = 8E42256A89ABABDDA8DEA8F9 /* BayenWorker.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A5649AF0A3F95056C707E3B6 /* BayenWorkerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E9C716058C1AE41E17E458E /* Build configuration list for PBXNativeTarget "BayenWorkerTests" */;
+			buildPhases = (
+				5EFEBFEEA4C1EF5E247E6FBD /* Sources */,
+				6197050EF9E938EBBD8FB520 /* Frameworks */,
+				935230EFF183FD3D08B13CF1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6FA9671EBEFE256E7AD3EB87 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				8DA0FBAE3CD3E30F0429582E /* BayenWorkerTests */,
+			);
+			name = BayenWorkerTests;
+			packageProductDependencies = (
+			);
+			productName = BayenWorkerTests;
+			productReference = 789695E3F2B97A651F49D58C /* BayenWorkerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1781F676DEDF5767F3243DB0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					99E3A65F4F675A4C8FFE1D70 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					A5649AF0A3F95056C707E3B6 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 99E3A65F4F675A4C8FFE1D70;
+					};
+				};
+			};
+			buildConfigurationList = F57280C82D3A38F8BF412A52 /* Build configuration list for PBXProject "BayenWorker" */;
+			developmentRegion = ar;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				ar,
+				fr,
+				en,
+				Base,
+			);
+			mainGroup = 88932FD6DD0EDC80FBF1C921;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7806CD590FC22E1CCB4412FF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				99E3A65F4F675A4C8FFE1D70 /* BayenWorker */,
+				A5649AF0A3F95056C707E3B6 /* BayenWorkerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7B3FC2D3640485997EC5329C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		935230EFF183FD3D08B13CF1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5EFEBFEEA4C1EF5E247E6FBD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B0F53FC2AFDA3376014A0A9B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6FA9671EBEFE256E7AD3EB87 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 99E3A65F4F675A4C8FFE1D70 /* BayenWorker */;
+			targetProxy = 6243C48879ADA18227307687 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		240438BEA9A34661667CEDAF /* Mock */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B8ECB9EA80B8459E9FB2193A /* Mock.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7VA3C4JRXB;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Bayen;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "يحتاج تطبيق بيان إلى الكاميرا لالتقاط صور العمل مباشرة في مكان المهمة. لا يمكن استعمال صور قديمة.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "يحتاج تطبيق بيان إلى موقعك أثناء استعمال التطبيق لإثبات أن الصور التُقطت في مكان المهمة ولحساب المسافة إليها.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ma.bayen.mock;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Mock;
+		};
+		48B67C254030DABDE0BCACB8 /* Mock */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Mock;
+		};
+		544CA989ED0C35AEA0B89FD3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		5CF4E86EC16164DF1D8B4067 /* Mock */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ma.bayen.worker.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BayenWorker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BayenWorker";
+			};
+			name = Mock;
+		};
+		8E872A2AC6FC9A0BA378E28D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		9633CD74DE3E9E0CEF51B914 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B414AEF4D058F99E792BC96E /* Release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7VA3C4JRXB;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Bayen;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "يحتاج تطبيق بيان إلى الكاميرا لالتقاط صور العمل مباشرة في مكان المهمة. لا يمكن استعمال صور قديمة.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "يحتاج تطبيق بيان إلى موقعك أثناء استعمال التطبيق لإثبات أن الصور التُقطت في مكان المهمة ولحساب المسافة إليها.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ma.bayen;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		9E9CE62D837366615C600C6C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 718FF3472F0D3EE2F3A30EA3 /* Debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7VA3C4JRXB;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Bayen;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "يحتاج تطبيق بيان إلى الكاميرا لالتقاط صور العمل مباشرة في مكان المهمة. لا يمكن استعمال صور قديمة.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "يحتاج تطبيق بيان إلى موقعك أثناء استعمال التطبيق لإثبات أن الصور التُقطت في مكان المهمة ولحساب المسافة إليها.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ma.bayen;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		CAA90EE1229D6E38C1AA5524 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ma.bayen.worker.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BayenWorker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BayenWorker";
+			};
+			name = Release;
+		};
+		D9965E07E4EA17E0DC5EF9BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ma.bayen.worker.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BayenWorker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BayenWorker";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4E9C716058C1AE41E17E458E /* Build configuration list for PBXNativeTarget "BayenWorkerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D9965E07E4EA17E0DC5EF9BB /* Debug */,
+				5CF4E86EC16164DF1D8B4067 /* Mock */,
+				CAA90EE1229D6E38C1AA5524 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5BEC55D452DBEA99476CD51A /* Build configuration list for PBXNativeTarget "BayenWorker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9E9CE62D837366615C600C6C /* Debug */,
+				240438BEA9A34661667CEDAF /* Mock */,
+				9633CD74DE3E9E0CEF51B914 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F57280C82D3A38F8BF412A52 /* Build configuration list for PBXProject "BayenWorker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				544CA989ED0C35AEA0B89FD3 /* Debug */,
+				48B67C254030DABDE0BCACB8 /* Mock */,
+				8E872A2AC6FC9A0BA378E28D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1781F676DEDF5767F3243DB0 /* Project object */;
+}

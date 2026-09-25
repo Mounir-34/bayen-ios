@@ -1,0 +1,6 @@
+#include "Shared.xcconfig"
+
+// Runs entirely offline in the simulator: MockAPIClient + simulated location in Aïn Sebaâ (Casablanca).
+API_BASE_URL = https:/$()/mock.bayen.invalid/api/v1
+API_MODE = mock
+PRODUCT_BUNDLE_IDENTIFIER = $(PRODUCT_BUNDLE_IDENTIFIER_BASE).mock

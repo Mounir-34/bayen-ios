@@ -1,0 +1,6 @@
+#include "Shared.xcconfig"
+
+// Production API. Change to your deployed server.
+API_BASE_URL = https:/$()/api.bayen.ma/api/v1
+API_MODE = live
+PRODUCT_BUNDLE_IDENTIFIER = $(PRODUCT_BUNDLE_IDENTIFIER_BASE)
