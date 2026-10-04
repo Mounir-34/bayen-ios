@@ -39,7 +39,7 @@ struct TaskDetailView: View {
         .task {
             location.start()
             if let task = store.task(id: taskId) { location.simulateArrival(at: task.coordinate) }
-            await model.load(store: store, api: env.api)
+            await model.load(store: store, api: env.api, uploads: uploads)
         }
         .onDisappear { location.stop() }
         .fullScreenCover(item: Binding(get: { model.cameraKind.map(CameraRequest.init) },
@@ -112,7 +112,7 @@ struct TaskDetailView: View {
             .animation(Motion.spring, value: localPhotos.count)
         }
         .scrollIndicators(.hidden)
-        .refreshable { await model.load(store: store, api: env.api) }
+        .refreshable { await model.load(store: store, api: env.api, uploads: uploads) }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             actionBar(task, action: action)
         }

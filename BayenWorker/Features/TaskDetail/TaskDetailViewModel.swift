@@ -16,12 +16,13 @@ final class TaskDetailViewModel {
 
     init(taskId: String) { self.taskId = taskId }
 
-    func load(store: TaskStore, api: APIClient) async {
+    func load(store: TaskStore, api: APIClient, uploads: UploadManager) async {
         isLoading = true
         defer { isLoading = false }
         do {
             let detail = try await api.task(id: taskId)
             self.detail = detail
+            localClientPhotoIds = uploads.storedClientPhotoIds(for: taskId)
             store.update(detail.task)
             store.setRejectionNote(detail.rejectionNote, for: taskId)
         } catch {
@@ -30,9 +31,12 @@ final class TaskDetailViewModel {
         }
     }
 
-    /// Server photos that can still be part of the next submission.
+    /// Photos of this task stored on the device when `detail` was loaded.
+    private var localClientPhotoIds: Set<String> = []
+
+    /// Server photos that can still be part of the next submission and aren't already shown from the device.
     var unsubmittedRemotePhotos: [RemotePhoto] {
-        (detail?.photos ?? []).filter { $0.submissionId == nil }
+        (detail?.photos ?? []).filter { $0.submissionId == nil }.notStored(locally: localClientPhotoIds)
     }
 
     enum PrimaryAction: Equatable {
@@ -109,6 +113,14 @@ final class TaskDetailViewModel {
         t.startedAt = Date()
         store.update(t)
         infoMessage = L10n.tr("task.start.queued")
+    }
+}
+
+extension Array where Element == RemotePhoto {
+    /// Server photos without a copy on this device. A photo taken here is shown and submitted from its local copy;
+    /// a local copy waiting to be deleted means the worker removed it, so its server copy must not come back either.
+    func notStored(locally clientPhotoIds: Set<String>) -> [RemotePhoto] {
+        filter { !clientPhotoIds.contains($0.clientPhotoId) }
     }
 }
 

@@ -165,6 +165,12 @@ final class UploadManager {
 
     // MARK: - Queries
 
+    /// Client ids of every photo of the task stored on the device, including ones waiting to be deleted on the server.
+    func storedClientPhotoIds(for taskId: String) -> Set<String> {
+        let descriptor = FetchDescriptor<PendingPhoto>(predicate: #Predicate { $0.taskId == taskId })
+        return Set(((try? context.fetch(descriptor)) ?? []).map(\.clientPhotoId))
+    }
+
     func photos(for taskId: String) -> [PendingPhoto] {
         let descriptor = FetchDescriptor<PendingPhoto>(
             predicate: #Predicate { $0.taskId == taskId && !$0.markedForDeletion },

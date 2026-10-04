@@ -22,9 +22,10 @@ final class SubmitReviewViewModel {
 
     init(taskId: String) { self.taskId = taskId }
 
-    func loadRemotePhotos(api: APIClient) async {
+    func loadRemotePhotos(api: APIClient, uploads: UploadManager) async {
         if let detail = try? await api.task(id: taskId) {
             remotePhotos = detail.photos.filter { $0.submissionId == nil }
+                .notStored(locally: uploads.storedClientPhotoIds(for: taskId))
         }
     }
 
@@ -117,7 +118,7 @@ struct SubmitReviewView: View {
         }
         .task {
             location.start()
-            await model.loadRemotePhotos(api: env.api)
+            await model.loadRemotePhotos(api: env.api, uploads: uploads)
         }
         .onDisappear { location.stop() }
     }
