@@ -94,14 +94,15 @@ final class CameraViewModel {
             longitude: fix.coordinate.longitude,
             horizontalAccuracy: max(0, fix.horizontalAccuracy),
             altitude: fix.verticalAccuracy >= 0 ? fix.altitude : nil,
-            isSimulatedLocation: fix.isSimulatedBySoftware,
+            isSimulatedLocation: fix.isSimulatedBySoftware && !DemoMode.isActive,
             deviceModel: DeviceInfo.deviceModel,
             osVersion: DeviceInfo.osVersion,
             appVersion: DeviceInfo.appVersion,
             clientPhotoId: clientPhotoId)
 
         do {
-            let raw = try await camera.capture()
+            let raw: Data
+            if let demo = DemoMode.photo(for: kind) { raw = demo } else { raw = try await camera.capture() }
             flashToggle.toggle()
             let processed = try await Task.detached(priority: .userInitiated) {
                 try PhotoProcessor.process(raw, location: fix, capturedAt: capturedAt)

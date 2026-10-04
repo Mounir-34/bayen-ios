@@ -10,10 +10,13 @@ struct CameraView: View {
     @Environment(UploadManager.self) private var uploads
     @State private var model: CameraViewModel
     @Query private var photos: [PendingPhoto]
+    /// Demo only: the scene in the "viewfinder", fixed for this camera session (the street doesn't change mid-visit).
+    @State private var demoScene: UIImage?
 
     init(task: WorkerTask, initialKind: PhotoKind) {
         self.task = task
         _model = State(initialValue: CameraViewModel(task: task, kind: initialKind))
+        _demoScene = State(initialValue: DemoMode.previewImage(for: initialKind))
         let taskId = task.id
         _photos = Query(filter: #Predicate<PendingPhoto> { $0.taskId == taskId && !$0.markedForDeletion },
                         sort: \PendingPhoto.capturedAt)
@@ -46,6 +49,12 @@ struct CameraView: View {
             }
         } else if model.camera.hasCamera {
             CameraPreview(session: model.camera.session).ignoresSafeArea()
+        } else if let demoScene {
+            // In an overlay so the filled image can't widen the HUD's layout.
+            Color.black
+                .overlay { Image(uiImage: demoScene).resizable().scaledToFill() }
+                .clipped()
+                .ignoresSafeArea()
         } else {
             // Simulator: no camera hardware.
             VStack(spacing: 14) {
