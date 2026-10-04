@@ -46,33 +46,55 @@ struct LoginView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 0) {
                 LanguagePicker()
-                BrandMark(height: 180).padding(.top, 8)
+                    .padding(.top, 8)
+                    .appearAnimation(index: 0)
+
+                BrandMark(height: 150)
+                    .padding(.top, 36)
+                    .appearAnimation(index: 1)
+
                 Text(L10n.tr("login.subtitle"))
-                    .font(.title3)
+                    .font(.title3.weight(.medium))
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.textSecondary)
+                    .padding(.top, 20)
+                    .padding(.horizontal, 12)
+                    .appearAnimation(index: 2)
 
-                PhoneField(nationalDigits: $model.phoneDigits)
-                PasswordField(title: L10n.tr("field.password"), password: $model.password)
-
-                if let error = model.errorMessage {
-                    NoticeBanner(kind: .danger, title: error)
+                VStack(spacing: 18) {
+                    PhoneField(nationalDigits: $model.phoneDigits)
+                    PasswordField(title: L10n.tr("field.password"), password: $model.password)
+                    if let error = model.errorMessage {
+                        NoticeBanner(kind: .danger, title: error)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                 }
+                .cardStyle(padding: 18)
+                .padding(.top, 32)
+                .appearAnimation(index: 3)
 
-                BigButton(title: L10n.tr("login.button"), systemImage: "arrow.forward.circle.fill", isLoading: model.isLoading) {
-                    Task { await model.login(session: session) }
+                VStack(spacing: 12) {
+                    BigButton(title: L10n.tr("login.button"), systemImage: "arrow.forward", isLoading: model.isLoading) {
+                        Task { await model.login(session: session) }
+                    }
+                    .disabled(!model.canSubmit)
+
+                    BigButton(title: L10n.tr("login.register"), systemImage: "person.badge.plus", style: .secondary,
+                              action: onRegister)
                 }
-                .disabled(!model.canSubmit)
-
-                BigButton(title: L10n.tr("login.register"), systemImage: "person.badge.plus", style: .secondary, action: onRegister)
+                .padding(.top, 24)
+                .appearAnimation(index: 4)
             }
-            .padding(20)
+            .padding(.horizontal, Theme.screenPadding)
+            .padding(.bottom, 32)
+            .animation(Motion.spring, value: model.errorMessage)
         }
         .scrollDismissesKeyboard(.interactively)
-        .background(Theme.background)
+        .background(AmbientBackground())
         .toolbar(.hidden, for: .navigationBar)
+        .sensoryFeedback(.error, trigger: model.errorMessage) { _, new in new != nil }
     }
 }
 
@@ -128,48 +150,68 @@ struct RegisterView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                BrandEmblem(size: 64).frame(maxWidth: .infinity)
-                Text(L10n.tr("register.intro"))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 14) {
+                    BrandEmblem(size: 52)
+                    Text(L10n.tr("register.intro"))
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .appearAnimation(index: 0)
 
-                LabeledField(title: L10n.tr("field.fullName"), systemImage: "person.fill") {
-                    TextField(L10n.tr("field.fullName"), text: $model.fullName)
-                        .textContentType(.name)
+                VStack(alignment: .leading, spacing: 18) {
+                    LabeledField(title: L10n.tr("field.fullName"), systemImage: "person") {
+                        TextField(L10n.tr("field.fullName"), text: $model.fullName)
+                            .textContentType(.name)
+                    }
+                    PhoneField(nationalDigits: $model.phoneDigits)
+                    PasswordField(title: L10n.tr("field.newPassword"), password: $model.password, isNew: true)
                 }
-                PhoneField(nationalDigits: $model.phoneDigits)
-                PasswordField(title: L10n.tr("field.newPassword"), password: $model.password, isNew: true)
-                LabeledField(title: L10n.tr("field.municipalityCode"), systemImage: "building.columns.fill") {
-                    TextField(text: $model.municipalityCode) { Text(verbatim: "CASA-AINSEBAA") }
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .environment(\.layoutDirection, .leftToRight)
+                .cardStyle(padding: 18)
+                .appearAnimation(index: 1)
+
+                VStack(alignment: .leading, spacing: 18) {
+                    LabeledField(title: L10n.tr("field.municipalityCode"), systemImage: "building.columns") {
+                        TextField(text: $model.municipalityCode) { Text(verbatim: "CASA-AINSEBAA") }
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
+                            .environment(\.layoutDirection, .leftToRight)
+                    }
+                    LabeledField(title: L10n.tr("field.cin"), systemImage: "person.text.rectangle") {
+                        TextField(text: $model.cin) { Text(verbatim: "BE123456") }
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
+                            .environment(\.layoutDirection, .leftToRight)
+                    }
                 }
-                LabeledField(title: L10n.tr("field.cin"), systemImage: "person.text.rectangle.fill") {
-                    TextField(text: $model.cin) { Text(verbatim: "BE123456") }
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .environment(\.layoutDirection, .leftToRight)
-                }
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(L10n.tr("field.language"), systemImage: "globe").font(.headline).foregroundStyle(.secondary)
+                .cardStyle(padding: 18)
+                .appearAnimation(index: 2)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionHeader(title: L10n.tr("field.language"), systemImage: "globe")
                     LanguagePicker()
                 }
+                .appearAnimation(index: 3)
 
                 if let error = model.errorMessage {
                     NoticeBanner(kind: .danger, title: error)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
-                BigButton(title: L10n.tr("register.button"), systemImage: "checkmark.circle.fill", isLoading: model.isLoading) {
+                BigButton(title: L10n.tr("register.button"), systemImage: "checkmark", isLoading: model.isLoading) {
                     Task { await model.register(session: session, language: language.language) }
                 }
+                .appearAnimation(index: 4)
             }
-            .padding(20)
+            .padding(.horizontal, Theme.screenPadding)
+            .padding(.vertical, 12)
+            .animation(Motion.spring, value: model.errorMessage)
         }
         .scrollDismissesKeyboard(.interactively)
-        .background(Theme.background)
+        .background(AmbientBackground(intensity: 0.6))
         .navigationTitle(L10n.tr("register.title"))
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
+        .sensoryFeedback(.error, trigger: model.errorMessage) { _, new in new != nil }
     }
 }
 
@@ -182,31 +224,39 @@ struct PendingApprovalView: View {
     @State private var message: String?
 
     var body: some View {
-        StateScreen(systemImage: "hourglass", color: TaskStatus.submitted.color,
+        StateScreen(systemImage: "hourglass", color: Theme.warning,
                     title: L10n.tr("pending.title"), message: L10n.tr("pending.message")) {
             if !phone.isEmpty {
                 Text(verbatim: PhoneNumber.display(phone))
-                    .font(.headline)
+                    .font(.headline.monospacedDigit())
+                    .foregroundStyle(Theme.textPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Theme.fill, in: Capsule())
                     .environment(\.layoutDirection, .leftToRight)
             }
             if let message {
                 NoticeBanner(kind: .info, title: message)
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
-            BigButton(title: L10n.tr("pending.refresh"), systemImage: "arrow.clockwise", isLoading: isChecking) {
-                Task {
-                    isChecking = true
-                    defer { isChecking = false }
-                    do {
-                        let approved = try await session.recheckApproval()
-                        if !approved { message = L10n.tr("pending.stillPending") }
-                    } catch {
-                        message = APIError.from(error).localizedMessage
+            VStack(spacing: 12) {
+                BigButton(title: L10n.tr("pending.refresh"), systemImage: "arrow.clockwise", isLoading: isChecking) {
+                    Task {
+                        isChecking = true
+                        defer { isChecking = false }
+                        do {
+                            let approved = try await session.recheckApproval()
+                            if !approved { withAnimation(Motion.spring) { message = L10n.tr("pending.stillPending") } }
+                        } catch {
+                            withAnimation(Motion.spring) { message = APIError.from(error).localizedMessage }
+                        }
                     }
                 }
+                BigButton(title: L10n.tr("common.backToLogin"), systemImage: "chevron.backward", style: .secondary) {
+                    session.backToLogin()
+                }
             }
-            BigButton(title: L10n.tr("common.backToLogin"), systemImage: "chevron.backward", style: .secondary) {
-                session.backToLogin()
-            }
+            .padding(.top, 8)
         }
     }
 }
@@ -220,11 +270,12 @@ struct SuspendedView: View {
             BigButton(title: L10n.tr("common.backToLogin"), systemImage: "chevron.backward", style: .secondary) {
                 Task { await session.logout() }
             }
+            .padding(.top, 8)
         }
     }
 }
 
-/// Full-screen friendly message with a big icon.
+/// Full-screen friendly message with a big, softly glowing icon.
 struct StateScreen<Actions: View>: View {
     let systemImage: String
     let color: Color
@@ -232,27 +283,63 @@ struct StateScreen<Actions: View>: View {
     let message: String
     @ViewBuilder let actions: () -> Actions
 
+    @State private var appeared = false
+    @State private var pulse = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                BrandEmblem(size: 56).padding(.top, 24)
-                Image(systemName: systemImage)
-                    .font(.system(size: 64, weight: .semibold))
-                    .foregroundStyle(color)
-                    .frame(width: 128, height: 128)
-                    .background(color.opacity(0.12), in: Circle())
-                    .accessibilityHidden(true)
-                Text(title)
-                    .font(.title.weight(.bold))
-                    .multilineTextAlignment(.center)
-                Text(message)
-                    .font(.title3)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-                actions()
+            VStack(spacing: 22) {
+                BrandEmblem(size: 44)
+                    .padding(.top, 20)
+                    .opacity(0.9)
+
+                ZStack {
+                    Circle()
+                        .stroke(color.opacity(0.18), lineWidth: 1.5)
+                        .frame(width: 176, height: 176)
+                        .scaleEffect(pulse ? 1.12 : 0.92)
+                        .opacity(pulse ? 0 : 1)
+                    Circle().fill(color.opacity(0.07)).frame(width: 168, height: 168)
+                    Circle().fill(color.opacity(0.12)).frame(width: 124, height: 124)
+                    Circle()
+                        .fill(LinearGradient(colors: [color.opacity(0.95), color.opacity(0.75)],
+                                             startPoint: .top, endPoint: .bottom))
+                        .frame(width: 84, height: 84)
+                        .shadow(color: color.opacity(0.4), radius: 18, x: 0, y: 10)
+                    Image(systemName: systemImage)
+                        .font(.system(size: 36, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .symbolEffect(.bounce, value: appeared)
+                }
+                .scaleEffect(appeared ? 1 : 0.6)
+                .opacity(appeared ? 1 : 0)
+                .padding(.vertical, 8)
+                .accessibilityHidden(true)
+
+                VStack(spacing: 10) {
+                    Text(title)
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(Theme.textPrimary)
+                        .multilineTextAlignment(.center)
+                    Text(message)
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(Theme.textSecondary)
+                }
+                .appearAnimation(index: 2)
+
+                VStack(spacing: 14) { actions() }
+                    .appearAnimation(index: 4)
             }
-            .padding(24)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 24)
         }
-        .background(Theme.background)
+        .background(AmbientBackground(intensity: 0.7))
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.65)) { appeared = true }
+            guard !reduceMotion else { return }
+            withAnimation(.easeOut(duration: 2.2).repeatForever(autoreverses: false)) { pulse = true }
+        }
     }
 }

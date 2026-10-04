@@ -48,12 +48,12 @@ struct CameraView: View {
             CameraPreview(session: model.camera.session).ignoresSafeArea()
         } else {
             // Simulator: no camera hardware.
-            VStack(spacing: 12) {
-                Image(systemName: "camera.metering.unknown").font(.system(size: 60))
-                Text(L10n.tr("camera.simulator")).multilineTextAlignment(.center)
+            VStack(spacing: 14) {
+                Image(systemName: "camera.aperture").font(.system(size: 56, weight: .light))
+                Text(L10n.tr("camera.simulator")).font(.subheadline).multilineTextAlignment(.center)
             }
-            .foregroundStyle(.white.opacity(0.8))
-            .padding()
+            .foregroundStyle(.white.opacity(0.6))
+            .padding(40)
         }
     }
 
@@ -65,40 +65,34 @@ struct CameraView: View {
             warnings(gps: gps)
             Spacer()
             if let error = model.errorMessage {
-                NoticeBanner(kind: .danger, title: error).padding(.horizontal)
+                NoticeBanner(kind: .danger, title: error)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous))
+                    .padding(.horizontal)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             bottomBar(now: now)
         }
+        .animation(Motion.spring, value: gps)
+        .animation(Motion.spring, value: model.errorMessage)
         .environment(\.colorScheme, .dark)
     }
 
     private func topBar(gps: CameraViewModel.GPSState) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             HStack {
                 Button { dismiss() } label: {
-                    Label(L10n.tr("common.close"), systemImage: "xmark")
-                        .font(.headline)
-                        .padding(.horizontal, 14).frame(minHeight: 44)
-                        .background(.ultraThinMaterial, in: Capsule())
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .frame(width: 46, height: 46)
+                        .contentShape(Circle())
                 }
+                .buttonStyle(PressableStyle(scale: 0.9))
+                .glass(in: Circle(), interactive: true)
+                .accessibilityLabel(L10n.tr("common.close"))
                 Spacer()
                 GPSChip(state: gps)
             }
-            // BEFORE / AFTER toggle
-            HStack(spacing: 0) {
-                ForEach(PhotoKind.allCases, id: \.self) { kind in
-                    Button { model.kind = kind } label: {
-                        Text(kind.label)
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .foregroundStyle(model.kind == kind ? Theme.onPrimary : .white)
-                            .background(model.kind == kind ? Theme.primary : .clear, in: Capsule())
-                    }
-                    .accessibilityAddTraits(model.kind == kind ? .isSelected : [])
-                }
-            }
-            .padding(4)
-            .background(.ultraThinMaterial, in: Capsule())
+            KindSwitch(selection: $model.kind)
         }
         .padding(.horizontal)
         .padding(.top, 8)
@@ -110,38 +104,49 @@ struct CameraView: View {
         VStack(spacing: 8) {
             switch gps {
             case .denied:
-                NoticeBanner(kind: .danger, title: L10n.tr("location.denied.title"), message: L10n.tr("camera.location.blocked"),
-                             systemImage: "location.slash.fill")
-                Button(L10n.tr("common.openSettings")) { AppSettings.open() }.buttonStyle(.borderedProminent)
+                HUDNotice(color: Theme.danger, systemImage: "location.slash.fill",
+                          title: L10n.tr("location.denied.title"), message: L10n.tr("camera.location.blocked"))
+                Button(L10n.tr("common.openSettings")) { AppSettings.open() }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 18).frame(minHeight: 44)
+                    .glass(in: Capsule(), interactive: true)
             case let .searching(secondsLeft):
-                NoticeBanner(kind: .info, title: L10n.tr("camera.gps.searching"),
-                             message: L10n.tr("camera.gps.searching.detail", secondsLeft), systemImage: "location.magnifyingglass")
+                HUDNotice(color: Theme.info, systemImage: "location.magnifyingglass",
+                          title: L10n.tr("camera.gps.searching"), message: L10n.tr("camera.gps.searching.detail", secondsLeft))
             case let .weak(accuracy):
-                NoticeBanner(kind: .warning, title: L10n.tr("camera.gps.weak", Geo.formatDistance(accuracy)),
-                             message: L10n.tr("camera.gps.weak.detail"), systemImage: "location.slash")
+                HUDNotice(color: Theme.warning, systemImage: "location.slash",
+                          title: L10n.tr("camera.gps.weak", Geo.formatDistance(accuracy)), message: L10n.tr("camera.gps.weak.detail"))
             case .good:
                 EmptyView()
             }
             if gps != .denied, model.isOutsideRadius(location: location), let d = model.distanceToTask(location: location) {
-                NoticeBanner(kind: .warning, title: L10n.tr("camera.outside", Geo.formatDistance(d)),
-                             message: L10n.tr("camera.outside.detail", Geo.formatDistance(Double(task.radiusMeters))),
-                             systemImage: "mappin.slash")
+                HUDNotice(color: Theme.warning, systemImage: "mappin.slash",
+                          title: L10n.tr("camera.outside", Geo.formatDistance(d)),
+                          message: L10n.tr("camera.outside.detail", Geo.formatDistance(Double(task.radiusMeters))))
             }
         }
         .padding(.horizontal)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     private func bottomBar(now: Date) -> some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 18) {
             if !photos.isEmpty {
-                LocalPhotoStrip(photos: photos, allowsDelete: true, thumbSize: 72)
+                LocalPhotoStrip(photos: photos, allowsDelete: true, thumbSize: 68)
                     .padding(.horizontal)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             HStack {
                 // Count of photos taken
-                VStack {
-                    Text(verbatim: "\(photos.count)").font(.title.weight(.bold))
-                    Text(L10n.tr("camera.count")).font(.caption)
+                VStack(spacing: 2) {
+                    Text(verbatim: "\(photos.count)")
+                        .font(.system(.title, design: .rounded, weight: .bold).monospacedDigit())
+                        .contentTransition(.numericText())
+                    Text(L10n.tr("camera.count"))
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                 }
                 .frame(width: 90)
                 .accessibilityElement(children: .combine)
@@ -153,20 +158,98 @@ struct CameraView: View {
                 Spacer()
 
                 Button { dismiss() } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill").font(.title)
-                        Text(L10n.tr("camera.done")).font(.caption.weight(.semibold))
+                    VStack(spacing: 6) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(photos.isEmpty ? .white : Theme.onPrimary)
+                            .frame(width: 52, height: 52)
+                            .background {
+                                if !photos.isEmpty { Circle().fill(.white) }
+                            }
+                            .glass(in: Circle())
+                        Text(L10n.tr("camera.done"))
+                            .font(.caption.weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
                     }
-                    .frame(width: 90, height: 64)
+                    .frame(width: 90)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(PressableStyle(scale: 0.92))
                 .accessibilityLabel(L10n.tr("camera.done"))
             }
             .padding(.horizontal)
-            .padding(.bottom, 12)
+            .padding(.bottom, 8)
         }
-        .padding(.top, 12)
+        .padding(.top, 18)
         .foregroundStyle(.white)
-        .background(.black.opacity(0.55))
+        .background {
+            LinearGradient(colors: [.black.opacity(0), .black.opacity(0.55), .black.opacity(0.8)],
+                           startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+        }
+        .animation(Motion.spring, value: photos.count)
+        .sensoryFeedback(.impact(weight: .medium), trigger: photos.count) { old, new in new > old }
+    }
+}
+
+/// Glass "Before / After" switch with a sliding selection.
+private struct KindSwitch: View {
+    @Binding var selection: PhotoKind
+    @Namespace private var pill
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(PhotoKind.allCases, id: \.self) { kind in
+                let isSelected = selection == kind
+                Button {
+                    withAnimation(Motion.snappy) { selection = kind }
+                } label: {
+                    Text(kind.label)
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .foregroundStyle(isSelected ? Color.black : .white)
+                        .background {
+                            if isSelected {
+                                Capsule().fill(.white).matchedGeometryEffect(id: "pill", in: pill)
+                            }
+                        }
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(4)
+        .glass(in: Capsule())
+        .sensoryFeedback(.selection, trigger: selection)
+    }
+}
+
+/// Compact dark-glass notice for the camera HUD.
+private struct HUDNotice: View {
+    let color: Color
+    let systemImage: String
+    let title: String
+    let message: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(color)
+                .frame(width: 32, height: 32)
+                .background(color.opacity(0.2), in: Circle())
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.subheadline.weight(.semibold))
+                Text(message).font(.footnote).foregroundStyle(.white.opacity(0.75))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .foregroundStyle(.white)
+        .padding(12)
+        .glass(in: RoundedRectangle(cornerRadius: Theme.innerRadius + 2, style: .continuous))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -178,14 +261,26 @@ private struct ShutterButton: View {
     var body: some View {
         Button(action: action) {
             ZStack {
-                Circle().stroke(.white, lineWidth: 5).frame(width: 84, height: 84)
-                Circle().fill(enabled ? Color.white : Color.gray).frame(width: 68, height: 68)
+                Circle().strokeBorder(.white.opacity(enabled ? 1 : 0.4), lineWidth: 4).frame(width: 84, height: 84)
+                Circle().fill(enabled ? Color.white : Color.white.opacity(0.25)).frame(width: 68, height: 68)
                 if isBusy { ProgressView().tint(.black) }
             }
+            .contentShape(Circle())
         }
+        .buttonStyle(ShutterStyle())
         .disabled(!enabled || isBusy)
+        .animation(Motion.snappy, value: enabled)
         .accessibilityLabel(L10n.tr("camera.shutter"))
         .accessibilityHint(enabled ? "" : L10n.tr("camera.shutter.disabledHint"))
+    }
+}
+
+private struct ShutterStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.88 : 1)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
+            .sensoryFeedback(.impact(weight: .heavy, intensity: 0.8), trigger: configuration.isPressed) { _, pressed in pressed }
     }
 }
 
@@ -202,20 +297,30 @@ private struct GPSChip: View {
 
     private var color: Color {
         switch state {
-        case .denied: return .red
-        case .searching, .weak: return .orange
-        case .good: return .green
+        case .denied: return Theme.danger
+        case .searching, .weak: return Theme.warning
+        case .good: return Theme.success
         }
     }
 
+    private var isGood: Bool { if case .good = state { return true } else { return false } }
+
     var body: some View {
-        Label {
-            Text(text).font(.subheadline.weight(.bold))
-        } icon: {
-            Image(systemName: "location.fill").foregroundStyle(color)
+        HStack(spacing: 8) {
+            ZStack {
+                Circle().fill(color.opacity(0.35)).frame(width: 16, height: 16)
+                    .phaseAnimator([false, true]) { view, phase in
+                        view.scaleEffect(phase ? 1.4 : 0.8).opacity(phase ? 0 : 1)
+                    } animation: { _ in .easeOut(duration: 1.4) }
+                Circle().fill(color).frame(width: 8, height: 8)
+            }
+            Text(text)
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+                .contentTransition(.numericText())
         }
-        .padding(.horizontal, 12).frame(minHeight: 44)
-        .background(.ultraThinMaterial, in: Capsule())
+        .padding(.horizontal, 14).frame(minHeight: 46)
+        .glass(in: Capsule())
+        .animation(Motion.snappy, value: isGood)
         .accessibilityElement(children: .combine)
     }
 }

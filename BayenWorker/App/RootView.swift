@@ -19,19 +19,28 @@ struct RootView: View {
                 MainTabView()
             }
         }
-        .animation(.default, value: session.state)
+        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+        .animation(Motion.spring, value: session.state)
         .task { await session.bootstrap() }
     }
 }
 
 private struct LaunchView: View {
+    @State private var breathe = false
+
     var body: some View {
-        VStack(spacing: 16) {
-            BrandMark(height: 220)
-            ProgressView().controlSize(.large)
+        ZStack {
+            AmbientBackground(intensity: 1.2)
+            VStack(spacing: 28) {
+                BrandMark(height: 180)
+                    .scaleEffect(breathe ? 1.0 : 0.96)
+                    .opacity(breathe ? 1 : 0.85)
+                ProgressView().tint(Theme.textSecondary)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) { breathe = true }
+        }
     }
 }
 
@@ -44,6 +53,7 @@ struct BrandMark: View {
             .resizable()
             .scaledToFit()
             .frame(height: height)
+            .shadow(color: Theme.primary.opacity(0.18), radius: 24, x: 0, y: 12)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(verbatim: "Bayen"))
             .accessibilityAddTraits(.isImage)

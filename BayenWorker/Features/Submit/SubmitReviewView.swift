@@ -83,26 +83,38 @@ struct SubmitReviewView: View {
             if let task = store.task(id: taskId) {
                 switch model.phase {
                 case .sent:
-                    StateScreen(systemImage: "checkmark.seal.fill", color: .green,
+                    StateScreen(systemImage: "checkmark", color: Theme.success,
                                 title: L10n.tr("submit.sent.title"), message: L10n.tr("submit.sent.message")) {
                         BigButton(title: L10n.tr("submit.backToTasks"), systemImage: "list.bullet") { env.router.popToRoot() }
                     }
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 case .queued:
-                    StateScreen(systemImage: "icloud.and.arrow.up.fill", color: Color(uiColor: .systemBlue),
+                    StateScreen(systemImage: "icloud.and.arrow.up.fill", color: Theme.info,
                                 title: L10n.tr("submit.queued.title"), message: L10n.tr("submit.queued.message")) {
                         BigButton(title: L10n.tr("submit.backToTasks"), systemImage: "list.bullet") { env.router.popToRoot() }
                     }
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 case .editing, .sending:
                     form(task)
                 }
             } else {
-                ProgressView()
+                ProgressView().tint(Theme.textSecondary)
             }
         }
-        .background(Theme.background)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AmbientBackground(intensity: 0.45))
+        .animation(Motion.spring, value: model.phase)
         .navigationTitle(L10n.tr("submit.title"))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(model.phase != .editing)
+        .sensoryFeedback(trigger: model.phase) { _, phase in
+            switch phase {
+            case .sent: return .success
+            case .queued: return .warning
+            default: return nil
+            }
+        }
         .task {
             location.start()
             await model.loadRemotePhotos(api: env.api)
@@ -113,58 +125,78 @@ struct SubmitReviewView: View {
     private func form(_ task: WorkerTask) -> some View {
         let requirement = PhotoRequirement(task: task, localPhotos: localPhotos, remotePhotos: model.remotePhotos)
         return ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                Text(task.title).font(.title2.weight(.bold))
-
-                VStack(alignment: .leading, spacing: 8) {
-                    RequirementRow(done: requirement.hasEnough,
-                                   text: L10n.tr("requirement.minPhotos", requirement.total, requirement.minimum))
-                    if task.requireBeforePhoto {
-                        RequirementRow(done: requirement.hasBefore, text: L10n.tr("requirement.before"))
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 10) {
+                        CategoryIcon(category: task.category, size: 36)
+                        Text(task.category.label)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Theme.textSecondary)
                     }
-                    RequirementRow(done: requirement.hasAfter, text: L10n.tr("requirement.after"))
+                    Text(task.title)
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(Theme.textPrimary)
                 }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
+                .appearAnimation(index: 0)
 
-                Label(L10n.tr("submit.photos"), systemImage: "photo.on.rectangle").font(.headline)
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
-                    ForEach(localPhotos) { photo in
-                        PhotoThumbnail(photo: photo, size: 104)
-                    }
-                    ForEach(model.remotePhotos) { photo in
-                        RemoteThumbnail(photo: photo, size: 104)
-                    }
-                }
-                if uploads.pendingPhotoCount > 0 {
-                    NoticeBanner(kind: .info, title: L10n.tr("upload.banner.photos", uploads.pendingPhotoCount),
-                                 message: L10n.tr("submit.photosWillUpload"), systemImage: "arrow.up.circle")
-                }
+                RequirementsSummary(task: task, requirement: requirement)
+                    .cardStyle(padding: 16)
+                    .appearAnimation(index: 1)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(L10n.tr("submit.note"), systemImage: "text.bubble").font(.headline)
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionHeader(title: L10n.tr("submit.photos"), count: localPhotos.count + model.remotePhotos.count,
+                                  systemImage: "photo.on.rectangle")
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 10)], spacing: 10) {
+                        ForEach(localPhotos) { photo in
+                            PhotoThumbnail(photo: photo, size: 100)
+                        }
+                        ForEach(model.remotePhotos) { photo in
+                            RemoteThumbnail(photo: photo, size: 100)
+                        }
+                    }
+                    if uploads.pendingPhotoCount > 0 {
+                        NoticeBanner(kind: .info, title: L10n.tr("upload.banner.photos", uploads.pendingPhotoCount),
+                                     message: L10n.tr("submit.photosWillUpload"), systemImage: "arrow.up")
+                    }
+                }
+                .cardStyle(padding: 16)
+                .appearAnimation(index: 2)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionHeader(title: L10n.tr("submit.note"), systemImage: "text.bubble")
                     TextField(L10n.tr("submit.note.placeholder"), text: $model.note, axis: .vertical)
                         .lineLimit(3...8)
-                        .font(.title3)
+                        .font(.body)
+                        .multilineTextAlignment(.leading)
+                        .foregroundStyle(Theme.textPrimary)
                         .focused($noteFocused)
-                        .padding(12)
-                        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .padding(14)
+                        .background(Theme.fill, in: RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous)
+                            .strokeBorder(noteFocused ? Theme.primary.opacity(0.5) : Theme.hairline, lineWidth: noteFocused ? 1.5 : 0.75))
+                        .animation(Motion.snappy, value: noteFocused)
                     Label(L10n.tr("submit.note.dictationHint"), systemImage: "mic.fill")
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textTertiary)
+                        .padding(.horizontal, 4)
                 }
+                .cardStyle(padding: 16)
+                .appearAnimation(index: 3)
 
                 if let error = model.errorMessage {
                     NoticeBanner(kind: .danger, title: error)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
-            .padding(16)
-            .padding(.bottom, 100)
+            .padding(.horizontal, Theme.screenPadding)
+            .padding(.top, 8)
+            .padding(.bottom, 24)
+            .animation(Motion.spring, value: model.errorMessage)
         }
+        .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .safeAreaInset(edge: .bottom) {
-            BigButton(title: L10n.tr("submit.button"), systemImage: "checkmark.circle.fill", isLoading: model.phase == .sending) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            BigButton(title: L10n.tr("submit.button"), systemImage: "paperplane.fill", isLoading: model.phase == .sending) {
                 noteFocused = false
                 if requirement.isMet {
                     send(task)
@@ -173,8 +205,10 @@ struct SubmitReviewView: View {
                 }
             }
             .disabled(requirement.total == 0 || location.isDenied)
-            .padding(16)
-            .background(.bar)
+            .padding(.horizontal, Theme.screenPadding)
+            .padding(.top, 20)
+            .padding(.bottom, 10)
+            .background { BottomFade() }
         }
         .alert(L10n.tr("submit.incomplete.title"), isPresented: $model.confirmIncomplete) {
             Button(L10n.tr("submit.incomplete.send"), role: .destructive) { send(task) }
@@ -196,23 +230,22 @@ struct RemoteThumbnail: View {
     var size: CGFloat = 96
 
     var body: some View {
-        AsyncImage(url: URL(string: photo.thumbnailUrl ?? photo.url)) { image in
-            image.resizable().scaledToFill()
-        } placeholder: {
-            Color.gray.opacity(0.2)
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        AsyncImage(url: URL(string: photo.thumbnailUrl ?? photo.url), transaction: Transaction(animation: Motion.gentle)) { phase in
+            if let image = phase.image {
+                image.resizable().scaledToFill()
+            } else {
+                Rectangle().fill(Theme.fill)
+            }
         }
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(alignment: .bottomLeading) {
-            Text(photo.kind.label)
-                .font(.caption.weight(.bold))
-                .padding(.horizontal, 6).padding(.vertical, 3)
-                .background(.black.opacity(0.6), in: Capsule())
-                .foregroundStyle(.white)
-                .padding(4)
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(Theme.hairline, lineWidth: 0.75))
+        .overlay(alignment: .topLeading) {
+            UploadStatusIcon(status: .uploaded).padding(5)
         }
-        .overlay(alignment: .bottomTrailing) {
-            UploadStatusIcon(status: .uploaded).padding(4)
+        .overlay(alignment: .bottomLeading) {
+            PhotoKindTag(kind: photo.kind).padding(5)
         }
     }
 }

@@ -17,6 +17,15 @@ enum TaskSection: String, CaseIterable, Identifiable {
         case .cancelled, .unknown: return nil
         }
     }
+
+    var color: Color {
+        switch self {
+        case .toDo: return Theme.primary
+        case .inProgress: return Theme.info
+        case .waitingReview: return Theme.warning
+        case .done: return Theme.success
+        }
+    }
 }
 
 struct TaskListView: View {
@@ -25,23 +34,30 @@ struct TaskListView: View {
     @Environment(LocationService.self) private var location
     @Environment(UploadManager.self) private var uploads
     @AppStorage("bayen.tasks.showMap") private var showMap = false
+    @Namespace private var zoom
 
     var body: some View {
         @Bindable var router = env.router
         NavigationStack(path: $router.path) {
-            VStack(spacing: 0) {
-                UploadStatusBanner().padding(.horizontal).padding(.top, 8)
+            ZStack {
                 if showMap {
                     TaskMapView(tasks: store.tasks.filter { TaskSection.of(store.effectiveStatus(of: $0)) != .done })
+                        .overlay(alignment: .top) {
+                            UploadStatusBanner().padding(.horizontal, Theme.screenPadding).padding(.top, 8)
+                        }
+                        .transition(.opacity)
                 } else {
                     list
+                        .transition(.opacity)
                 }
             }
-            .background(Theme.background)
+            .animation(Motion.gentle, value: showMap)
+            .animation(Motion.spring, value: uploads.pendingPhotoCount)
+            .background(AmbientBackground(intensity: 0.55))
             .navigationTitle(L10n.tr("tasks.title"))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    BrandEmblem(size: 32)
+                    BrandEmblem(size: 30)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Picker(selection: $showMap) {
@@ -51,12 +67,13 @@ struct TaskListView: View {
                         Text(L10n.tr("tasks.view"))
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 120)
+                    .frame(width: 112)
+                    .sensoryFeedback(.selection, trigger: showMap)
                 }
             }
             .navigationDestination(for: TaskRoute.self) { route in
                 switch route {
-                case let .detail(taskId): TaskDetailView(taskId: taskId)
+                case let .detail(taskId): TaskDetailView(taskId: taskId).zoomTransition(id: taskId, in: zoom)
                 case let .submit(taskId): SubmitReviewView(taskId: taskId)
                 }
             }
@@ -87,61 +104,72 @@ struct TaskListView: View {
 
     @ViewBuilder
     private var list: some View {
-        List {
-            if let error = store.lastError, !store.tasks.isEmpty {
-                NoticeBanner(kind: .warning, title: error.localizedMessage, message: lastUpdatedText)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-            }
-            ForEach(grouped) { group in
-                let section = group.section
-                let tasks = group.tasks
-                Section {
-                    ForEach(tasks) { task in
-                        NavigationLink(value: TaskRoute.detail(taskId: task.id)) {
-                            TaskCardView(task: task,
-                                         status: store.effectiveStatus(of: task),
-                                         rejectionNote: store.rejectionNotes[task.id],
-                                         userLocation: location.location,
-                                         pendingPhotos: uploads.photos(for: task.id).filter { $0.status != .uploaded }.count)
-                        }
-                        .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
+        let groups = grouped
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    UploadStatusBanner()
+
+                    if let error = store.lastError, !store.tasks.isEmpty {
+                        NoticeBanner(kind: .warning, title: error.localizedMessage, message: lastUpdatedText)
                     }
-                } header: {
-                    Text(verbatim: "\(section.title) (\(tasks.count))")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .textCase(nil)
-                }
-            }
-        }
-        .listStyle(.insetGrouped)
-        .overlay {
-            if store.tasks.isEmpty {
-                if store.isLoading {
-                    ProgressView().controlSize(.large)
-                } else if let error = store.lastError {
-                    ContentUnavailableView {
-                        Label(L10n.tr("tasks.error.title"), systemImage: "wifi.exclamationmark")
-                    } description: {
-                        Text(error.localizedMessage)
-                    } actions: {
-                        Button(L10n.tr("common.retry")) { Task { await store.refresh() } }.buttonStyle(.borderedProminent)
-                    }
-                } else {
-                    ContentUnavailableView {
-                        Label {
-                            Text(L10n.tr("tasks.empty.title"))
-                        } icon: {
-                            BrandEmblem(size: 88)
+
+                    if !store.tasks.isEmpty {
+                        SummaryCard(counts: Dictionary(uniqueKeysWithValues: groups.map { ($0.section, $0.tasks.count) })) { section in
+                            withAnimation(Motion.spring) { proxy.scrollTo(section, anchor: .top) }
                         }
-                    } description: {
-                        Text(L10n.tr("tasks.empty.message"))
+                        .appearAnimation(index: 0)
+                        .padding(.bottom, 8)
+                    }
+
+                    ForEach(groups) { group in
+                        SectionHeader(title: group.section.title, count: group.tasks.count)
+                            .padding(.top, 10)
+                            .id(group.section)
+                        ForEach(Array(group.tasks.enumerated()), id: \.element.id) { offset, task in
+                            NavigationLink(value: TaskRoute.detail(taskId: task.id)) {
+                                TaskCardView(task: task,
+                                             status: store.effectiveStatus(of: task),
+                                             rejectionNote: store.rejectionNotes[task.id],
+                                             userLocation: location.location,
+                                             pendingPhotos: uploads.photos(for: task.id).filter { $0.status != .uploaded }.count)
+                                    .zoomSource(id: task.id, in: zoom)
+                            }
+                            .buttonStyle(PressableStyle(scale: 0.98, haptic: false))
+                            .appearAnimation(index: offset + 1)
+                        }
                     }
                 }
+                .padding(.horizontal, Theme.screenPadding)
+                .padding(.top, 4)
+                .padding(.bottom, 32)
             }
+            .scrollIndicators(.hidden)
+            .overlay {
+                if store.tasks.isEmpty {
+                    emptyState
+                }
+            }
+            .refreshable { await store.refresh() }
         }
-        .refreshable { await store.refresh() }
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        if store.isLoading {
+            ProgressView().controlSize(.large).tint(Theme.textSecondary)
+        } else if let error = store.lastError {
+            EmptyStateView(systemImage: "wifi.exclamationmark", tint: Theme.warning,
+                           title: L10n.tr("tasks.error.title"), message: error.localizedMessage) {
+                BigButton(title: L10n.tr("common.retry"), systemImage: "arrow.clockwise") {
+                    Task { await store.refresh() }
+                }
+                .frame(maxWidth: 260)
+            }
+        } else {
+            EmptyStateView(systemImage: nil, tint: Theme.primary,
+                           title: L10n.tr("tasks.empty.title"), message: L10n.tr("tasks.empty.message")) { EmptyView() }
+        }
     }
 
     private var lastUpdatedText: String? {
@@ -149,6 +177,50 @@ struct TaskListView: View {
         return L10n.tr("tasks.lastUpdated", date.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(L10n.locale)))
     }
 }
+
+// MARK: - Summary
+
+/// Four-up overview of the worker's tasks; tapping a figure scrolls to that section.
+private struct SummaryCard: View {
+    let counts: [TaskSection: Int]
+    let onSelect: (TaskSection) -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            ForEach(Array(TaskSection.allCases.enumerated()), id: \.element) { index, section in
+                let count = counts[section] ?? 0
+                if index > 0 {
+                    Rectangle().fill(Theme.hairline).frame(width: 1, height: 56).padding(.top, 18)
+                }
+                Button { onSelect(section) } label: {
+                    VStack(spacing: 6) {
+                        Text(verbatim: "\(count)")
+                            .font(.system(.title, design: .rounded, weight: .bold).monospacedDigit())
+                            .foregroundStyle(count > 0 ? section.color : Theme.textTertiary)
+                            .contentTransition(.numericText())
+                        Text(section.title)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Theme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 72, alignment: .top)
+                    .padding(.horizontal, 4)
+                    .padding(.top, 14)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(PressableStyle(scale: 0.94))
+                .disabled(count == 0)
+                .accessibilityElement(children: .combine)
+            }
+        }
+        .padding(.bottom, 10)
+        .cardStyle(padding: 0)
+    }
+}
+
+// MARK: - Card
 
 struct TaskCardView: View {
     let task: WorkerTask
@@ -158,57 +230,127 @@ struct TaskCardView: View {
     var pendingPhotos = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 12) {
-                CategoryIcon(category: task.category, size: 52)
-                VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 14) {
+                CategoryIcon(category: task.category, size: 50)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(task.category.label)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.textTertiary)
                     Text(task.title)
                         .font(.headline)
+                        .foregroundStyle(Theme.textPrimary)
+                        .multilineTextAlignment(.leading)
                         .lineLimit(3)
-                    StatusBadge(status: status)
                 }
                 Spacer(minLength: 0)
+                Image(systemName: "chevron.forward")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Theme.textTertiary)
+                    .padding(.top, 4)
+                    .accessibilityHidden(true)
+            }
+
+            HStack(spacing: 8) {
+                StatusBadge(status: status, compact: true)
                 if task.priority == .high {
-                    Image(systemName: "flag.fill").foregroundStyle(Theme.danger)
-                        .accessibilityLabel(L10n.tr("priority.HIGH"))
+                    HStack(spacing: 4) {
+                        Image(systemName: "flag.fill").font(.system(size: 10, weight: .bold))
+                        Text(L10n.tr("priority.HIGH")).font(.caption.weight(.semibold))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .foregroundStyle(Theme.danger)
+                    .background(Theme.danger.opacity(0.1), in: Capsule())
                 }
             }
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 16) { details }
-                VStack(alignment: .leading, spacing: 6) { details }
-            }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
 
             if status == .rejected {
                 NoticeBanner(kind: .danger, title: L10n.tr("task.rejected.title"),
                              message: rejectionNote ?? L10n.tr("task.rejected.noReason"), systemImage: "exclamationmark.bubble.fill")
             }
+
+            if hasDetails {
+                Rectangle().fill(Theme.hairline).frame(height: 1)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 18) { details }
+                    VStack(alignment: .leading, spacing: 8) { details }
+                }
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(Theme.textSecondary)
+            }
         }
-        .padding(.vertical, 6)
-        .overlay(alignment: .leading) {
-            // Status colour strip on the leading edge.
-            RoundedRectangle(cornerRadius: 2).fill(status.color).frame(width: 4).offset(x: -10)
-        }
+        .cardStyle(padding: 16)
         .accessibilityElement(children: .combine)
     }
+
+    private var hasDetails: Bool { userLocation != nil || task.dueDate != nil || pendingPhotos > 0 }
 
     @ViewBuilder
     private var details: some View {
         if let userLocation {
             Label(Geo.formatDistance(Geo.distanceMeters(from: userLocation.coordinate, to: task.coordinate)),
                   systemImage: "location.fill")
+                .labelStyle(MetaLabelStyle())
         }
         if let due = task.dueDate {
             Label(due.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted).locale(L10n.locale)), systemImage: "calendar")
-                .foregroundStyle(task.isOverdue ? Theme.danger : .secondary)
+                .labelStyle(MetaLabelStyle())
+                .foregroundStyle(task.isOverdue ? Theme.danger : Theme.textSecondary)
         }
         if pendingPhotos > 0 {
-            Label(L10n.tr("upload.banner.photos", pendingPhotos), systemImage: "arrow.up.circle")
+            Label(L10n.tr("upload.banner.photos", pendingPhotos), systemImage: "arrow.up.circle.fill")
+                .labelStyle(MetaLabelStyle())
                 .foregroundStyle(Theme.warning)
         }
     }
 }
+
+/// Compact icon + text used for card metadata.
+struct MetaLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 5) {
+            configuration.icon.font(.caption.weight(.semibold)).opacity(0.85)
+            configuration.title.monospacedDigit()
+        }
+    }
+}
+
+// MARK: - Empty state
+
+struct EmptyStateView<Actions: View>: View {
+    /// `nil` shows the Bayen emblem.
+    let systemImage: String?
+    let tint: Color
+    let title: String
+    let message: String
+    @ViewBuilder let actions: () -> Actions
+
+    var body: some View {
+        VStack(spacing: 18) {
+            ZStack {
+                Circle().fill(tint.opacity(0.06)).frame(width: 150, height: 150)
+                Circle().fill(tint.opacity(0.1)).frame(width: 110, height: 110)
+                if let systemImage {
+                    Image(systemName: systemImage).font(.system(size: 40, weight: .semibold)).foregroundStyle(tint)
+                } else {
+                    BrandEmblem(size: 72)
+                }
+            }
+            .accessibilityHidden(true)
+            VStack(spacing: 8) {
+                Text(title).font(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
+                Text(message).font(.subheadline).foregroundStyle(Theme.textSecondary)
+            }
+            .multilineTextAlignment(.center)
+            actions()
+        }
+        .padding(32)
+        .appearAnimation()
+    }
+}
+
+// MARK: - Map
 
 struct TaskMapView: View {
     let tasks: [WorkerTask]
@@ -221,18 +363,13 @@ struct TaskMapView: View {
         Map(position: $position) {
             ForEach(tasks) { task in
                 let status = store.effectiveStatus(of: task)
-                Annotation(task.title, coordinate: task.coordinate) {
+                Annotation(task.title, coordinate: task.coordinate, anchor: .bottom) {
                     Button {
                         env.router.path.append(.detail(taskId: task.id))
                     } label: {
-                        Image(systemName: task.category.symbol)
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(status.color, in: Circle())
-                            .overlay(Circle().stroke(.white, lineWidth: 3))
-                            .shadow(radius: 3)
+                        MapPin(symbol: task.category.symbol, color: status.color)
                     }
+                    .buttonStyle(PressableStyle(scale: 0.9))
                     .accessibilityLabel(Text(verbatim: "\(task.title), \(status.label)"))
                 }
             }
@@ -242,6 +379,7 @@ struct TaskMapView: View {
                 UserAnnotation()
             }
         }
+        .mapStyle(.standard(elevation: .realistic, emphasis: .muted, pointsOfInterest: .excludingAll))
         .mapControls {
             MapUserLocationButton()
             MapCompass()
@@ -249,10 +387,76 @@ struct TaskMapView: View {
     }
 }
 
-struct SimulatedUserDot: View {
+/// Teardrop map marker: coloured disc with the category symbol and a small pointer.
+struct MapPin: View {
+    let symbol: String
+    let color: Color
+    var size: CGFloat = 46
+
     var body: some View {
-        Circle().fill(Color.blue).frame(width: 18, height: 18)
-            .overlay(Circle().stroke(.white, lineWidth: 3))
-            .shadow(radius: 2)
+        VStack(spacing: -4) {
+            Image(systemName: symbol)
+                .font(.system(size: size * 0.4, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: size, height: size)
+                .background(
+                    Circle().fill(LinearGradient(colors: [color.opacity(0.9), color], startPoint: .top, endPoint: .bottom)))
+                .overlay(Circle().strokeBorder(.white, lineWidth: 3))
+            Triangle()
+                .fill(.white)
+                .frame(width: 14, height: 9)
+        }
+        .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 4)
+    }
+}
+
+private struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { p in
+            p.move(to: CGPoint(x: rect.minX, y: rect.minY))
+            p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+            p.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+            p.closeSubpath()
+        }
+    }
+}
+
+struct SimulatedUserDot: View {
+    @State private var pulse = false
+
+    var body: some View {
+        ZStack {
+            Circle().fill(Theme.info.opacity(0.25)).frame(width: 40, height: 40)
+                .scaleEffect(pulse ? 1 : 0.5)
+                .opacity(pulse ? 0 : 1)
+            Circle().fill(Theme.info).frame(width: 18, height: 18)
+                .overlay(Circle().stroke(.white, lineWidth: 3))
+                .shadow(color: .black.opacity(0.2), radius: 3)
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 1.8).repeatForever(autoreverses: false)) { pulse = true }
+        }
+    }
+}
+
+// MARK: - Zoom navigation (iOS 18+)
+
+extension View {
+    @ViewBuilder
+    func zoomSource(id: String, in namespace: Namespace.ID) -> some View {
+        if #available(iOS 18.0, *) {
+            matchedTransitionSource(id: id, in: namespace) { $0.clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)) }
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func zoomTransition(id: String, in namespace: Namespace.ID) -> some View {
+        if #available(iOS 18.0, *) {
+            navigationTransition(.zoom(sourceID: id, in: namespace))
+        } else {
+            self
+        }
     }
 }

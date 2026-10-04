@@ -26,14 +26,16 @@ struct TaskDetailView: View {
             if let task = store.task(id: taskId) ?? model.detail?.task {
                 content(task)
             } else if let error = model.errorMessage {
-                ContentUnavailableView(L10n.tr("tasks.error.title"), systemImage: "exclamationmark.triangle",
-                                       description: Text(error))
+                EmptyStateView(systemImage: "exclamationmark.triangle", tint: Theme.warning,
+                               title: L10n.tr("tasks.error.title"), message: error) { EmptyView() }
             } else {
-                ProgressView().controlSize(.large)
+                ProgressView().controlSize(.large).tint(Theme.textSecondary)
             }
         }
-        .background(Theme.background)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AmbientBackground(intensity: 0.45))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .task {
             location.start()
             if let task = store.task(id: taskId) { location.simulateArrival(at: task.coordinate) }
@@ -57,105 +59,188 @@ struct TaskDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 header(task, status: status)
+                    .appearAnimation(index: 0)
 
-                if status == .rejected {
-                    NoticeBanner(kind: .danger, title: L10n.tr("task.rejected.title"),
-                                 message: store.rejectionNotes[task.id] ?? model.detail?.rejectionNote ?? L10n.tr("task.rejected.noReason"),
-                                 systemImage: "exclamationmark.bubble.fill")
+                VStack(spacing: 10) {
+                    if status == .rejected {
+                        NoticeBanner(kind: .danger, title: L10n.tr("task.rejected.title"),
+                                     message: store.rejectionNotes[task.id] ?? model.detail?.rejectionNote ?? L10n.tr("task.rejected.noReason"),
+                                     systemImage: "exclamationmark.bubble.fill")
+                    }
+                    if let info = model.infoMessage {
+                        NoticeBanner(kind: .info, title: info)
+                    }
+                    if let error = model.errorMessage {
+                        NoticeBanner(kind: .danger, title: error)
+                    }
+                    if location.isDenied {
+                        locationDeniedBanner
+                    }
                 }
-                if let info = model.infoMessage {
-                    NoticeBanner(kind: .info, title: info)
-                }
-                if let error = model.errorMessage {
-                    NoticeBanner(kind: .danger, title: error)
-                }
-                if location.isDenied {
-                    locationDeniedBanner
+                .animation(Motion.spring, value: model.errorMessage)
+                .animation(Motion.spring, value: model.infoMessage)
+
+                mapCard(task)
+                    .appearAnimation(index: 1)
+
+                infoCard(task)
+                    .appearAnimation(index: 2)
+
+                if !task.description.isEmpty {
+                    card(L10n.tr("detail.description"), systemImage: "text.alignleft") {
+                        Text(task.description)
+                            .font(.body)
+                            .foregroundStyle(Theme.textPrimary)
+                            .lineSpacing(3)
+                    }
+                    .appearAnimation(index: 3)
                 }
 
-                TaskLocationMap(task: task, userLocation: location.location, isSimulated: location.isSimulated)
-                    .frame(height: 240)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
+                requirementsSection(task)
+                    .appearAnimation(index: 4)
 
+                if !localPhotos.isEmpty {
+                    card(L10n.tr("detail.myPhotos"), systemImage: "photo.stack") {
+                        LocalPhotoStrip(photos: localPhotos, allowsDelete: status == .inProgress && !hasQueuedSubmission)
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+            }
+            .padding(.horizontal, Theme.screenPadding)
+            .padding(.top, 8)
+            .padding(.bottom, 24)
+            .animation(Motion.spring, value: localPhotos.count)
+        }
+        .scrollIndicators(.hidden)
+        .refreshable { await model.load(store: store, api: env.api) }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            actionBar(task, action: action)
+        }
+        .navigationTitle(task.category.label)
+        .sensoryFeedback(.success, trigger: status) { _, new in new == .inProgress || new == .approved }
+    }
+
+    private func header(_ task: WorkerTask, status: TaskStatus) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 14) {
+                CategoryIcon(category: task.category, size: 58)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        StatusBadge(status: status)
+                            .contentTransition(.interpolate)
+                        if task.priority == .high {
+                            Image(systemName: "flag.fill")
+                                .font(.footnote.weight(.bold))
+                                .foregroundStyle(Theme.danger)
+                                .frame(width: 30, height: 30)
+                                .background(Theme.danger.opacity(0.1), in: Circle())
+                                .accessibilityLabel(L10n.tr("priority.HIGH"))
+                        }
+                    }
+                }
+            }
+            Text(task.title)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(Theme.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .animation(Motion.spring, value: status)
+    }
+
+    private func mapCard(_ task: WorkerTask) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            TaskLocationMap(task: task, userLocation: location.location, isSimulated: location.isSimulated)
+                .frame(height: 220)
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: Theme.cornerRadius - 6,
+                                                  bottomLeadingRadius: 8, bottomTrailingRadius: 8,
+                                                  topTrailingRadius: Theme.cornerRadius - 6, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 14) {
                 distanceRow(task)
-
                 BigButton(title: L10n.tr("detail.openInMaps"), systemImage: "arrow.triangle.turn.up.right.diamond.fill",
-                          style: .secondary) { showMapsChooser = true }
+                          style: .tinted) { showMapsChooser = true }
                     .confirmationDialog(L10n.tr("detail.openInMaps"), isPresented: $showMapsChooser, titleVisibility: .visible) {
                         Button(L10n.tr("maps.apple")) { MapsLauncher.open(.apple, task: task) }
                         Button(L10n.tr("maps.google")) { MapsLauncher.open(.google, task: task) }
                         Button(L10n.tr("maps.waze")) { MapsLauncher.open(.waze, task: task) }
                         Button(L10n.tr("common.cancel"), role: .cancel) {}
                     }
-
-                if !task.description.isEmpty {
-                    section(L10n.tr("detail.description"), systemImage: "text.alignleft") {
-                        Text(task.description).font(.body)
-                    }
-                }
-
-                requirementsSection(task)
-
-                if !localPhotos.isEmpty {
-                    section(L10n.tr("detail.myPhotos"), systemImage: "photo.stack") {
-                        LocalPhotoStrip(photos: localPhotos, allowsDelete: status == .inProgress && !hasQueuedSubmission)
-                    }
-                }
             }
-            .padding(16)
-            .padding(.bottom, 120)
+            .padding(.horizontal, 10)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
         }
-        .refreshable { await model.load(store: store, api: env.api) }
-        .safeAreaInset(edge: .bottom) {
-            actionBar(task, action: action)
-        }
-        .navigationTitle(task.category.label)
+        .cardStyle(padding: 6)
     }
 
-    private func header(_ task: WorkerTask, status: TaskStatus) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            CategoryIcon(category: task.category, size: 60)
-            VStack(alignment: .leading, spacing: 8) {
-                Text(task.title).font(.title2.weight(.bold))
-                StatusBadge(status: status)
-                if let due = task.dueDate {
-                    Label(L10n.tr("detail.due", due.formatted(Date.FormatStyle(date: .complete, time: .omitted).locale(L10n.locale))),
-                          systemImage: "calendar")
-                        .font(.subheadline)
-                        .foregroundStyle(task.isOverdue ? Theme.danger : .secondary)
+    @ViewBuilder
+    private func distanceRow(_ task: WorkerTask) -> some View {
+        let radius = L10n.tr("detail.radius", Geo.formatDistance(Double(task.radiusMeters)))
+        if let here = location.location {
+            let distance = Geo.distanceMeters(from: here.coordinate, to: task.coordinate)
+            let inside = distance <= Double(task.radiusMeters)
+            HStack(spacing: 12) {
+                IconCircle(systemImage: inside ? "checkmark" : "figure.walk", color: inside ? Theme.success : Theme.info, size: 40)
+                    .symbolEffect(.bounce, value: inside)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(inside ? L10n.tr("detail.atLocation") : L10n.tr("detail.distance", Geo.formatDistance(distance)))
+                        .font(.headline)
+                        .foregroundStyle(inside ? Theme.success : Theme.textPrimary)
+                        .contentTransition(.numericText())
+                    Text(radius)
+                        .font(.footnote)
+                        .foregroundStyle(Theme.textSecondary)
                 }
-                if let address = task.address {
-                    Label(address, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
-                }
+                Spacer(minLength: 0)
+            }
+            .accessibilityElement(children: .combine)
+            .animation(Motion.spring, value: inside)
+        } else if location.isAuthorized {
+            HStack(spacing: 12) {
+                ProgressView().frame(width: 40, height: 40)
+                Text(L10n.tr("location.searching"))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Theme.textSecondary)
             }
         }
     }
 
     @ViewBuilder
-    private func distanceRow(_ task: WorkerTask) -> some View {
-        if let here = location.location {
-            let distance = Geo.distanceMeters(from: here.coordinate, to: task.coordinate)
-            let inside = distance <= Double(task.radiusMeters)
-            NoticeBanner(kind: inside ? .success : .info,
-                         title: inside ? L10n.tr("detail.atLocation") : L10n.tr("detail.distance", Geo.formatDistance(distance)),
-                         message: L10n.tr("detail.radius", Geo.formatDistance(Double(task.radiusMeters))),
-                         systemImage: inside ? "checkmark.circle.fill" : "figure.walk")
-        } else if location.isAuthorized {
-            Label(L10n.tr("location.searching"), systemImage: "location.magnifyingglass").foregroundStyle(.secondary)
+    private func infoCard(_ task: WorkerTask) -> some View {
+        if task.dueDate != nil || task.address != nil {
+            VStack(spacing: 4) {
+                if let due = task.dueDate {
+                    HStack(spacing: 12) {
+                        IconCircle(systemImage: "calendar", color: task.isOverdue ? Theme.danger : Theme.primary, size: 32)
+                        Text(L10n.tr("detail.due", due.formatted(Date.FormatStyle(date: .complete, time: .omitted).locale(L10n.locale))))
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(task.isOverdue ? Theme.danger : Theme.textPrimary)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(minHeight: 44)
+                }
+                if task.dueDate != nil, task.address != nil {
+                    Rectangle().fill(Theme.hairline).frame(height: 1).padding(.leading, 44)
+                }
+                if let address = task.address {
+                    HStack(spacing: 12) {
+                        IconCircle(systemImage: "mappin.and.ellipse", color: Theme.primary, size: 32)
+                        Text(address)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Theme.textPrimary)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(minHeight: 44)
+                }
+            }
+            .cardStyle(padding: 12)
         }
     }
 
     private func requirementsSection(_ task: WorkerTask) -> some View {
         let requirement = PhotoRequirement(task: task, localPhotos: localPhotos, remotePhotos: model.unsubmittedRemotePhotos)
-        return section(L10n.tr("detail.requirements"), systemImage: "checklist") {
-            VStack(alignment: .leading, spacing: 8) {
-                RequirementRow(done: requirement.hasEnough,
-                               text: L10n.tr("requirement.minPhotos", requirement.total, requirement.minimum))
-                if task.requireBeforePhoto {
-                    RequirementRow(done: requirement.hasBefore, text: L10n.tr("requirement.before"))
-                }
-                RequirementRow(done: requirement.hasAfter, text: L10n.tr("requirement.after"))
-            }
+        return card(L10n.tr("detail.requirements"), systemImage: "checklist") {
+            RequirementsSummary(task: task, requirement: requirement)
         }
     }
 
@@ -176,13 +261,9 @@ struct TaskDetailView: View {
                     .disabled(location.isDenied)
             case .markDone:
                 NavigationLink(value: TaskRoute.submit(taskId: task.id)) {
-                    Label(L10n.tr("action.markDone"), systemImage: "checkmark.circle.fill")
-                        .font(.title3.weight(.bold))
-                        .frame(maxWidth: .infinity, minHeight: Theme.bigButtonHeight)
-                        .foregroundStyle(Theme.onPrimary)
-                        .background(Theme.primary, in: RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
+                    BigButtonLabel(title: L10n.tr("action.markDone"), systemImage: "checkmark.circle.fill")
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PressableStyle())
                 BigButton(title: L10n.tr("action.morePhotos"), systemImage: "camera", style: .secondary) { openCamera(task) }
                     .disabled(location.isDenied)
             case let .waitingReview(queued):
@@ -190,6 +271,7 @@ struct TaskDetailView: View {
                              title: L10n.tr(queued ? "submit.queued.title" : "status.SUBMITTED"),
                              message: L10n.tr(queued ? "submit.queued.message" : "detail.waitingReview"),
                              systemImage: queued ? "icloud.and.arrow.up" : "hourglass")
+                    .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous))
                 if queued, (uploads.pendingSubmission(for: task.id)?.isPermanentFailure == true
                     || (uploads.blockedPhotoCount > 0 && uploads.hasBlockedPhotos(taskId: task.id))) {
                     BigButton(title: L10n.tr("common.retry"), systemImage: "arrow.clockwise", style: .secondary) {
@@ -197,14 +279,18 @@ struct TaskDetailView: View {
                     }
                 }
             case .approved:
-                NoticeBanner(kind: .success, title: L10n.tr("status.APPROVED"), message: L10n.tr("detail.approved"))
+                NoticeBanner(kind: .success, title: L10n.tr("status.APPROVED"), message: L10n.tr("detail.approved"),
+                             systemImage: "checkmark.seal.fill")
+                    .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous))
             case .unavailable:
                 EmptyView()
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(.bar)
+        .padding(.horizontal, Theme.screenPadding)
+        .padding(.top, 20)
+        .padding(.bottom, 10)
+        .background { BottomFade() }
+        .animation(Motion.spring, value: action)
     }
 
     private func openCamera(_ task: WorkerTask) {
@@ -216,18 +302,70 @@ struct TaskDetailView: View {
         VStack(alignment: .leading, spacing: 10) {
             NoticeBanner(kind: .danger, title: L10n.tr("location.denied.title"), message: L10n.tr("location.denied.message"),
                          systemImage: "location.slash.fill")
-            BigButton(title: L10n.tr("common.openSettings"), systemImage: "gear", style: .secondary) { AppSettings.open() }
+            BigButton(title: L10n.tr("common.openSettings"), systemImage: "gear", style: .tinted) { AppSettings.open() }
         }
     }
 
-    private func section<Content: View>(_ title: String, systemImage: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(title, systemImage: systemImage).font(.headline)
+    private func card<Content: View>(_ title: String, systemImage: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: systemImage).foregroundStyle(Theme.primary)
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Theme.textSecondary)
             content()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
+        .cardStyle(padding: 16)
+    }
+}
+
+/// Soft fade from transparent to the screen colour behind floating bottom buttons.
+struct BottomFade: View {
+    var body: some View {
+        LinearGradient(stops: [.init(color: Theme.background.opacity(0), location: 0),
+                               .init(color: Theme.background.opacity(0.94), location: 0.3),
+                               .init(color: Theme.background, location: 1)],
+                       startPoint: .top, endPoint: .bottom)
+            .ignoresSafeArea()
+    }
+}
+
+/// Progress ring plus the checklist of photo requirements.
+struct RequirementsSummary: View {
+    let task: WorkerTask
+    let requirement: PhotoRequirement
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 16) {
+            ZStack {
+                ProgressRing(progress: Double(requirement.total) / Double(requirement.minimum),
+                             color: requirement.isMet ? Theme.success : Theme.primary, lineWidth: 6, size: 64)
+                VStack(spacing: 0) {
+                    Text(verbatim: "\(requirement.total)")
+                        .font(.system(.title3, design: .rounded, weight: .bold).monospacedDigit())
+                        .contentTransition(.numericText())
+                    Text(verbatim: "/ \(requirement.minimum)")
+                        .font(.caption2.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(Theme.textTertiary)
+                }
+                .foregroundStyle(Theme.textPrimary)
+                .environment(\.layoutDirection, .leftToRight)
+            }
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 10) {
+                RequirementRow(done: requirement.hasEnough,
+                               text: L10n.tr("requirement.minPhotos", requirement.total, requirement.minimum))
+                if task.requireBeforePhoto {
+                    RequirementRow(done: requirement.hasBefore, text: L10n.tr("requirement.before"))
+                }
+                RequirementRow(done: requirement.hasAfter, text: L10n.tr("requirement.after"))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .animation(Motion.spring, value: requirement.total)
     }
 }
 
@@ -241,13 +379,18 @@ struct RequirementRow: View {
     let text: String
 
     var body: some View {
-        Label {
-            Text(text)
-        } icon: {
+        HStack(alignment: .top, spacing: 10) {
             Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(done ? Color.green : Color.secondary)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(done ? Theme.success : Theme.textTertiary)
+                .contentTransition(.symbolEffect(.replace))
+            Text(text)
+                .font(.subheadline.weight(done ? .medium : .regular))
+                .foregroundStyle(done ? Theme.textPrimary : Theme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .font(.body)
+        .animation(Motion.snappy, value: done)
+        .accessibilityElement(children: .combine)
         .accessibilityValue(Text(L10n.tr(done ? "a11y.done" : "a11y.notDone")))
     }
 }
@@ -262,16 +405,18 @@ struct TaskLocationMap: View {
         Map(initialPosition: .region(MKCoordinateRegion(center: task.coordinate,
                                                         span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)))) {
             MapCircle(center: task.coordinate, radius: CLLocationDistance(task.radiusMeters))
-                .stroke(Theme.primary, lineWidth: 2)
-                .foregroundStyle(Theme.primary.opacity(0.18))
-            Marker(task.title, systemImage: task.category.symbol, coordinate: task.coordinate)
-                .tint(Theme.primary)
+                .stroke(task.category.tint, lineWidth: 2)
+                .foregroundStyle(task.category.tint.opacity(0.15))
+            Annotation(task.title, coordinate: task.coordinate, anchor: .bottom) {
+                MapPin(symbol: task.category.symbol, color: task.category.tint, size: 40)
+            }
             if isSimulated, let userLocation {
                 Annotation(L10n.tr("map.you"), coordinate: userLocation.coordinate) { SimulatedUserDot() }
             } else {
                 UserAnnotation()
             }
         }
+        .mapStyle(.standard(elevation: .realistic, emphasis: .muted, pointsOfInterest: .excludingAll))
         .mapControls { MapUserLocationButton() }
         .accessibilityLabel(Text(L10n.tr("detail.map.a11y")))
     }
@@ -320,9 +465,11 @@ struct LocalPhotoStrip: View {
             HStack(spacing: 10) {
                 ForEach(photos) { photo in
                     PhotoThumbnail(photo: photo, size: thumbSize, onDelete: allowsDelete ? { toDelete = photo } : nil)
+                        .transition(.scale(scale: 0.6).combined(with: .opacity))
                 }
             }
             .padding(.vertical, 4)
+            .animation(Motion.spring, value: photos.count)
         }
         .confirmationDialog(L10n.tr("photo.delete.title"), isPresented: Binding(get: { toDelete != nil }, set: { if !$0 { toDelete = nil } }),
                             titleVisibility: .visible) {
@@ -343,47 +490,64 @@ struct PhotoThumbnail: View {
     @State private var image: UIImage?
 
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
         ZStack(alignment: .topTrailing) {
             Group {
                 if let image {
-                    Image(uiImage: image).resizable().scaledToFill()
+                    Image(uiImage: image).resizable().scaledToFill().transition(.opacity)
                 } else {
-                    Color.gray.opacity(0.2)
+                    Rectangle().fill(Theme.fill)
                 }
             }
             .frame(width: size, height: size)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(alignment: .bottomLeading) {
-                Text(photo.kind.label)
-                    .font(.caption.weight(.bold))
-                    .padding(.horizontal, 6).padding(.vertical, 3)
-                    .background(.black.opacity(0.6), in: Capsule())
-                    .foregroundStyle(.white)
-                    .padding(4)
-            }
-            .overlay(alignment: .bottomTrailing) {
+            .clipShape(shape)
+            .overlay(shape.strokeBorder(Theme.hairline, lineWidth: 0.75))
+            .overlay(alignment: .topLeading) {
                 UploadStatusIcon(status: photo.status, isUploading: uploads.uploadingIds.contains(photo.clientPhotoId),
                                  isBlocked: photo.isPermanentFailure)
-                    .padding(4)
+                    .padding(5)
+            }
+            .overlay(alignment: .bottomLeading) {
+                PhotoKindTag(kind: photo.kind).padding(5)
             }
 
             if let onDelete {
                 Button(action: onDelete) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .red)
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 24, height: 24)
+                        .background(.black.opacity(0.55), in: Circle())
+                        .overlay(Circle().strokeBorder(.white.opacity(0.35), lineWidth: 0.5))
                         .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
-                .offset(x: 10, y: -10)
+                .buttonStyle(PressableStyle(scale: 0.85))
                 .accessibilityLabel(L10n.tr("photo.delete.title"))
             }
         }
+        .animation(Motion.gentle, value: image != nil)
         .accessibilityElement(children: .contain)
         .task(id: photo.fileName) {
             let url = uploads.files.url(for: photo.fileName)
             image = await Task.detached(priority: .utility) { ImageThumbnail.load(url, maxPixelSize: 300) }.value
         }
+    }
+}
+
+/// "Before" / "After" tag shown on photo thumbnails.
+struct PhotoKindTag: View {
+    let kind: PhotoKind
+
+    var body: some View {
+        Text(kind.label)
+            .font(.caption2.weight(.bold))
+            .lineLimit(1)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .minimumScaleFactor(0.8)
+            .background(.black.opacity(0.55), in: Capsule())
+            .foregroundStyle(.white)
     }
 }
 
@@ -400,26 +564,28 @@ struct UploadStatusIcon: View {
 
     private var appearance: Appearance {
         if isUploading || status == .uploading {
-            return Appearance(symbol: "arrow.up.circle.fill", color: .blue, label: L10n.tr("upload.status.uploading"))
+            return Appearance(symbol: "arrow.up.circle.fill", color: Theme.info, label: L10n.tr("upload.status.uploading"))
         }
         switch status {
         case .uploaded:
-            return Appearance(symbol: "checkmark.circle.fill", color: .green, label: L10n.tr("upload.status.uploaded"))
+            return Appearance(symbol: "checkmark.circle.fill", color: Theme.success, label: L10n.tr("upload.status.uploaded"))
         case .failed:
             return isBlocked
-                ? Appearance(symbol: "exclamationmark.circle.fill", color: .red, label: L10n.tr("upload.status.failed"))
-                : Appearance(symbol: "arrow.clockwise.circle.fill", color: .orange, label: L10n.tr("upload.status.retrying"))
+                ? Appearance(symbol: "exclamationmark.circle.fill", color: Theme.danger, label: L10n.tr("upload.status.failed"))
+                : Appearance(symbol: "arrow.clockwise.circle.fill", color: Theme.warning, label: L10n.tr("upload.status.retrying"))
         case .waiting, .uploading:
-            return Appearance(symbol: "clock.fill", color: .gray, label: L10n.tr("upload.status.waiting"))
+            return Appearance(symbol: "clock.fill", color: Theme.neutral, label: L10n.tr("upload.status.waiting"))
         }
     }
 
     var body: some View {
         Image(systemName: appearance.symbol)
-            .font(.title3)
+            .font(.system(size: 18, weight: .semibold))
             .symbolRenderingMode(.palette)
             .foregroundStyle(.white, appearance.color)
             .background(Circle().fill(.white).padding(2))
+            .contentTransition(.symbolEffect(.replace))
+            .symbolEffect(.pulse, options: .repeating, isActive: isUploading || status == .uploading)
             .accessibilityLabel(appearance.label)
     }
 }
