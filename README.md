@@ -13,7 +13,7 @@ Native SwiftUI app for workers doing small municipal jobs. They see their assign
 |---|---|---|---|
 | **BayenWorker Mock** | `Mock` | In-memory `MockAPIClient` + simulated GPS in Aïn Sebaâ, Casablanca | Running the whole app in the simulator with no server |
 | **BayenWorker Debug** | `Debug` | `http://localhost:3000/api/v1` | Working against the local server (`cd server && npm run dev`) |
-| **BayenWorker Release** | `Release` | `https://api.bayen.ma/api/v1` | TestFlight / App Store |
+| **BayenWorker Release** | `Release` | `https://bayen-api-837178854661.europe-west1.run.app/api/v1` | TestFlight / App Store |
 
 1. Open `BayenWorker.xcodeproj` in **Xcode 16 or newer**. The project uses folder-synchronised groups, so files you add under `BayenWorker/` or `BayenWorkerTests/` are picked up automatically.
 2. Pick a scheme and an iPhone simulator, then press Run.
@@ -29,6 +29,7 @@ The password is `Bayen2026!` for every account (the same as `server/prisma/seed.
 | `6 00 00 00 03` | Active worker (French) |
 | `6 00 00 00 04` | "Waiting for approval" screen |
 | `6 00 00 00 05` | "Account suspended" screen |
+| `6 00 00 00 06` | Account created by an admin: "Choose a new password" screen at first login |
 
 For registration, use the municipality code `CASA-AINSEBAA`. A newly registered mock account is approved automatically after 15 seconds, so you can try the **Refresh** button on the pending screen.
 

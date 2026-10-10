@@ -15,6 +15,8 @@ struct RootView: View {
                 PendingApprovalView(phone: phone)
             case .suspended:
                 SuspendedView()
+            case .passwordChangeRequired:
+                ChangePasswordView()
             case .active:
                 MainTabView()
             }

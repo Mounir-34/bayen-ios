@@ -15,6 +15,8 @@ protocol APIClient: AnyObject, Sendable {
     /// Revokes the refresh token (best effort) and clears local tokens.
     func logout() async
     func me() async throws -> User
+    /// `POST /me/password`. The server revokes every older refresh token, so the new token pair is stored.
+    func changePassword(currentPassword: String, newPassword: String) async throws -> User
 
     func tasks(status: TaskStatus?) async throws -> [WorkerTask]
     func task(id: String) async throws -> TaskDetail
@@ -32,4 +34,6 @@ enum SessionProblem: Equatable, Sendable {
     case loggedOut
     case accountPending
     case accountSuspended
+    /// A request was refused with `PASSWORD_CHANGE_REQUIRED`: the worker still has a temporary password.
+    case passwordChangeRequired
 }

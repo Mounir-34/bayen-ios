@@ -67,6 +67,14 @@ final class HTTPAPIClient: APIClient, @unchecked Sendable {
         return env.user
     }
 
+    func changePassword(currentPassword: String, newPassword: String) async throws -> User {
+        let request = ChangePasswordRequest(currentPassword: currentPassword, newPassword: newPassword)
+        let response: LoginResponse = try await send(.post("me/password", body: request))
+        // Every earlier refresh token is revoked by this call: the old pair is dead from here on.
+        tokenStore.save(AuthTokens(accessToken: response.accessToken, refreshToken: response.refreshToken))
+        return response.user
+    }
+
     // MARK: - Tasks
 
     func tasks(status: TaskStatus?) async throws -> [WorkerTask] {
@@ -185,6 +193,7 @@ final class HTTPAPIClient: APIClient, @unchecked Sendable {
                 switch error.code {
                 case "ACCOUNT_PENDING": onSessionProblem?(.accountPending)
                 case "ACCOUNT_SUSPENDED": onSessionProblem?(.accountSuspended)
+                case "PASSWORD_CHANGE_REQUIRED": onSessionProblem?(.passwordChangeRequired)
                 default: break
                 }
                 if response.statusCode == 401 {

@@ -760,6 +760,75 @@
         }
       }
     },
+    "changePassword.button": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حفظ ومتابعة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save and continue"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer et continuer"
+          }
+        }
+      }
+    },
+    "changePassword.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كلمة السر التي أعطتك الجماعة مؤقتة. اختر كلمة سر خاصة بك للمتابعة."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password the municipality gave you is temporary. Choose your own to continue."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le mot de passe donné par la commune est provisoire. Choisissez le vôtre pour continuer."
+          }
+        }
+      }
+    },
+    "changePassword.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر كلمة سر جديدة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a new password"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez un nouveau mot de passe"
+          }
+        }
+      }
+    },
     "common.backToLogin": {
       "extractionState": "manual",
       "localizations": {
@@ -1197,6 +1266,29 @@
         }
       }
     },
+    "error.CURRENT_PASSWORD_INCORRECT": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كلمة السر المؤقتة غير صحيحة. سجّل الخروج ثم ادخل من جديد."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The temporary password is incorrect. Log out, then log in again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le mot de passe provisoire est incorrect. Déconnectez-vous puis reconnectez-vous."
+          }
+        }
+      }
+    },
     "error.FILE_REQUIRED": {
       "extractionState": "manual",
       "localizations": {
@@ -1469,6 +1561,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cette tâche n'existe plus."
+          }
+        }
+      }
+    },
+    "error.PASSWORD_CHANGE_REQUIRED": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يجب اختيار كلمة سر جديدة قبل المتابعة."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You must choose a new password before continuing."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous devez choisir un nouveau mot de passe avant de continuer."
           }
         }
       }
@@ -1837,6 +1952,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "N° CIN (facultatif)"
+          }
+        }
+      }
+    },
+    "field.confirmPassword": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تأكيد كلمة السر"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm password"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmer le mot de passe"
           }
         }
       }
@@ -4246,6 +4384,75 @@
           "stringUnit": {
             "state": "translated",
             "value": "Le mot de passe doit contenir au moins 8 caractères."
+          }
+        }
+      }
+    },
+    "validation.passwordMismatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كلمتا السر غير متطابقتين."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The two passwords don't match."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les deux mots de passe ne sont pas identiques."
+          }
+        }
+      }
+    },
+    "validation.passwordSame": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر كلمة سر مختلفة عن كلمة السر المؤقتة."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a password different from the temporary one."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez un mot de passe différent du mot de passe provisoire."
+          }
+        }
+      }
+    },
+    "validation.passwordTooLong": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كلمة السر طويلة جدًا (128 حرفًا على الأكثر)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password is too long (128 characters at most)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le mot de passe est trop long (128 caractères maximum)."
           }
         }
       }

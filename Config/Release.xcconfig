@@ -1,6 +1,6 @@
 #include "Shared.xcconfig"
 
-// Production API. Change to your deployed server.
-API_BASE_URL = https:/$()/api.bayen.ma/api/v1
+// Tangier pilot API on Google Cloud Run. Replace with the custom domain once it exists.
+API_BASE_URL = https:/$()/bayen-api-837178854661.europe-west1.run.app/api/v1
 API_MODE = live
 PRODUCT_BUNDLE_IDENTIFIER = $(PRODUCT_BUNDLE_IDENTIFIER_BASE)

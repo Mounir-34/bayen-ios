@@ -12,6 +12,27 @@ struct User: Codable, Equatable, Sendable, Identifiable {
     let preferredLanguage: AppLanguage
     let createdAt: Date
     let approvedAt: Date?
+    /// True while the worker still uses the temporary password chosen by an admin: the app must make
+    /// them pick their own before anything else (`/worker/*` answers 403 `PASSWORD_CHANGE_REQUIRED`).
+    var mustChangePassword: Bool = false
+}
+
+extension User {
+    /// Hand-written so `mustChangePassword` may be missing (older servers / cached profiles) and defaults to false.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        municipalityId = try c.decode(String.self, forKey: .municipalityId)
+        fullName = try c.decode(String.self, forKey: .fullName)
+        phone = try c.decode(String.self, forKey: .phone)
+        role = try c.decode(String.self, forKey: .role)
+        status = try c.decode(UserStatus.self, forKey: .status)
+        cin = try c.decodeIfPresent(String.self, forKey: .cin)
+        preferredLanguage = try c.decode(AppLanguage.self, forKey: .preferredLanguage)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        approvedAt = try c.decodeIfPresent(Date.self, forKey: .approvedAt)
+        mustChangePassword = try c.decodeIfPresent(Bool.self, forKey: .mustChangePassword) ?? false
+    }
 }
 
 struct WorkerTask: Codable, Equatable, Hashable, Sendable, Identifiable {
@@ -126,6 +147,17 @@ struct LoginRequest: Codable, Sendable {
 
 struct RefreshRequest: Codable, Sendable {
     let refreshToken: String
+}
+
+/// `POST /me/password`. The answer has the shape of `LoginResponse` (all older refresh tokens are revoked).
+struct ChangePasswordRequest: Codable, Sendable {
+    let currentPassword: String
+    let newPassword: String
+}
+
+enum PasswordRules {
+    static let minLength = 8
+    static let maxLength = 128
 }
 
 struct LocationPayload: Codable, Equatable, Sendable {

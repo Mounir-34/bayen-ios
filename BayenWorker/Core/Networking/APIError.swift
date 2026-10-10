@@ -64,6 +64,8 @@ enum APIError: Error, Equatable, Sendable {
         case .decoding, .unauthorized: return false
         case let .server(status, code, _, _):
             if code == "RATE_LIMITED" { return true }
+            // Works again once the worker has chosen a password: queued photos must not be dropped meanwhile.
+            if code == "PASSWORD_CHANGE_REQUIRED" { return true }
             return status >= 500 || status == 408 || status == 429
         case let .http(status):
             return status >= 500 || status == 408 || status == 429

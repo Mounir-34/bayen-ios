@@ -8,6 +8,7 @@ import Foundation
 /// * `06 00 00 00 03` — active worker (French)
 /// * `06 00 00 00 04` — account pending approval
 /// * `06 00 00 00 05` — account suspended
+/// * `06 00 00 00 06` — active worker created by an admin: must choose a new password at first login
 /// Newly registered accounts are auto-approved 15 seconds after registration (to demo the refresh button).
 final class MockAPIClient: APIClient, @unchecked Sendable {
     static let password = "Bayen2026!"
@@ -61,7 +62,8 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
             }
             let user = User(id: UUID().uuidString.lowercased(), municipalityId: Self.municipalityId, fullName: request.fullName,
                             phone: phone, role: "WORKER", status: .pending, cin: request.cin?.uppercased(),
-                            preferredLanguage: request.preferredLanguage, createdAt: Date(), approvedAt: nil)
+                            preferredLanguage: request.preferredLanguage, createdAt: Date(), approvedAt: nil,
+                            mustChangePassword: false)
             users[user.id] = (user, request.password, Date())
             return user
         }
@@ -106,6 +108,24 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
             currentUserId = id
             return users[id]!.user
         }
+    }
+
+    func changePassword(currentPassword: String, newPassword: String) async throws -> User {
+        try await delay()
+        let user: User = try withLock {
+            guard tokenStore.load() != nil, let id = currentUserId, let entry = users[id] else { throw APIError.unauthorized }
+            guard entry.password == currentPassword else {
+                throw APIError.server(status: 422, code: "CURRENT_PASSWORD_INCORRECT", message: "Current password is incorrect")
+            }
+            guard (PasswordRules.minLength...PasswordRules.maxLength).contains(newPassword.count), newPassword != currentPassword else {
+                throw APIError.server(status: 400, code: "VALIDATION_ERROR", message: "Invalid new password")
+            }
+            let updated = entry.user.with(mustChangePassword: false)
+            users[id] = (updated, newPassword, entry.registeredAt)
+            return updated
+        }
+        tokenStore.save(AuthTokens(accessToken: "mock-access-\(UUID().uuidString)", refreshToken: "mock-refresh-\(UUID().uuidString)"))
+        return user
     }
 
     // MARK: - Tasks
@@ -240,8 +260,13 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
 
     private static let notFound = APIError.server(status: 404, code: "NOT_FOUND", message: "Not found")
 
+    /// Guards the `/worker/*` endpoints. Call with the lock held.
     private func requireSession() throws {
         guard tokenStore.load() != nil else { throw APIError.unauthorized }
+        if let id = currentUserId, users[id]?.user.mustChangePassword == true {
+            onSessionProblem?(.passwordChangeRequired)
+            throw APIError.server(status: 403, code: "PASSWORD_CHANGE_REQUIRED", message: "Password change required")
+        }
     }
 
     private func withLock<T>(_ body: () throws -> T) rethrows -> T {
@@ -256,16 +281,19 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
 
     private func seed() {
         let now = Date()
-        func user(_ id: String, _ name: String, _ phone: String, _ status: UserStatus, _ lang: AppLanguage, cin: String? = nil) {
+        func user(_ id: String, _ name: String, _ phone: String, _ status: UserStatus, _ lang: AppLanguage, cin: String? = nil,
+                  mustChangePassword: Bool = false) {
             let u = User(id: id, municipalityId: Self.municipalityId, fullName: name, phone: phone, role: "WORKER", status: status,
                          cin: cin, preferredLanguage: lang, createdAt: now.addingTimeInterval(-40 * 86_400),
-                         approvedAt: status == .active ? now.addingTimeInterval(-20 * 86_400) : nil)
+                         approvedAt: status == .active ? now.addingTimeInterval(-20 * 86_400) : nil,
+                         mustChangePassword: mustChangePassword)
             users[id] = (u, Self.password, now.addingTimeInterval(-40 * 86_400))
         }
         user("6f1c1d2e-0000-4000-8000-000000000102", "يوسف العمراني", "+212600000002", .active, .ar, cin: "BE123456")
         user("6f1c1d2e-0000-4000-8000-000000000103", "Khadija Ait Lahcen", "+212600000003", .active, .fr)
         user("6f1c1d2e-0000-4000-8000-000000000104", "عمر التازي", "+212600000004", .pending, .ar)
         user("6f1c1d2e-0000-4000-8000-000000000105", "Rachid Bennani", "+212600000005", .suspended, .fr)
+        user("6f1c1d2e-0000-4000-8000-000000000106", "سعيد الإدريسي", "+212600000006", .active, .ar, mustChangePassword: true)
 
         let c = Self.center
         func task(_ n: Int, _ title: String, _ description: String, _ category: TaskCategory, dLat: Double, dLng: Double,
@@ -308,6 +336,13 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
 extension User {
     func with(status: UserStatus) -> User {
         User(id: id, municipalityId: municipalityId, fullName: fullName, phone: phone, role: role, status: status, cin: cin,
-             preferredLanguage: preferredLanguage, createdAt: createdAt, approvedAt: status == .active ? Date() : approvedAt)
+             preferredLanguage: preferredLanguage, createdAt: createdAt, approvedAt: status == .active ? Date() : approvedAt,
+             mustChangePassword: mustChangePassword)
+    }
+
+    func with(mustChangePassword: Bool) -> User {
+        var copy = self
+        copy.mustChangePassword = mustChangePassword
+        return copy
     }
 }
