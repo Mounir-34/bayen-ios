@@ -41,9 +41,16 @@ struct TaskListView: View {
         NavigationStack(path: $router.path) {
             ZStack {
                 if showMap {
-                    TaskMapView(tasks: store.tasks.filter { TaskSection.of(store.effectiveStatus(of: $0)) != .done })
+                    TaskMapView(tasks: mapTasks)
                         .overlay(alignment: .top) {
-                            UploadStatusBanner().padding(.horizontal, Theme.screenPadding).padding(.top, 8)
+                            VStack(spacing: 8) {
+                                UploadStatusBanner()
+                                if !store.sectionFilter.isEmpty {
+                                    FilterActiveChip(sections: store.sectionFilter) { clearFilter() }
+                                }
+                            }
+                            .padding(.horizontal, Theme.screenPadding)
+                            .padding(.top, 8)
                         }
                         .transition(.opacity)
                 } else {
@@ -53,6 +60,9 @@ struct TaskListView: View {
             }
             .animation(Motion.gentle, value: showMap)
             .animation(Motion.spring, value: uploads.pendingPhotoCount)
+            // Fill the screen before the background goes on: a background only as wide as the content
+            // shows up as a vertical stripe.
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AmbientBackground(intensity: 0.55))
             .navigationTitle(L10n.tr("tasks.title"))
             .toolbar {
@@ -93,8 +103,27 @@ struct TaskListView: View {
         var id: TaskSection { section }
     }
 
+    private var filteredTasks: [WorkerTask] {
+        TaskFilter.apply(store.tasks, selected: store.sectionFilter, status: store.effectiveStatus(of:))
+    }
+
+    /// The map leaves finished tasks out, unless the worker asked for them in the filter.
+    private var mapTasks: [WorkerTask] {
+        store.sectionFilter.isEmpty
+            ? store.tasks.filter { TaskSection.of(store.effectiveStatus(of: $0)) != .done }
+            : filteredTasks
+    }
+
+    private func toggle(_ section: TaskSection) {
+        withAnimation(Motion.spring) { store.sectionFilter = TaskFilter.toggling(section, in: store.sectionFilter) }
+    }
+
+    private func clearFilter() {
+        withAnimation(Motion.spring) { store.sectionFilter = [] }
+    }
+
     private var grouped: [SectionGroup] {
-        let bySection = Dictionary(grouping: store.tasks) { TaskSection.of(store.effectiveStatus(of: $0)) }
+        let bySection = Dictionary(grouping: filteredTasks) { TaskSection.of(store.effectiveStatus(of: $0)) }
         return TaskSection.allCases.compactMap { section in
             guard let tasks = bySection[section], !tasks.isEmpty else { return nil }
             return SectionGroup(section: section,
@@ -105,53 +134,65 @@ struct TaskListView: View {
     @ViewBuilder
     private var list: some View {
         let groups = grouped
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    UploadStatusBanner()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                UploadStatusBanner()
 
-                    if let error = store.lastError, !store.tasks.isEmpty {
-                        NoticeBanner(kind: .warning, title: error.localizedMessage, message: lastUpdatedText)
-                    }
+                if let error = store.lastError, !store.tasks.isEmpty {
+                    NoticeBanner(kind: .warning, title: error.localizedMessage, message: lastUpdatedText)
+                }
 
-                    if !store.tasks.isEmpty {
-                        SummaryCard(counts: Dictionary(uniqueKeysWithValues: groups.map { ($0.section, $0.tasks.count) })) { section in
-                            withAnimation(Motion.spring) { proxy.scrollTo(section, anchor: .top) }
-                        }
+                if !store.tasks.isEmpty {
+                    SummaryCard(counts: TaskFilter.counts(store.tasks, status: store.effectiveStatus(of:)),
+                                selected: store.sectionFilter, onToggle: toggle)
                         .appearAnimation(index: 0)
                         .padding(.bottom, 8)
-                    }
+                        .sensoryFeedback(.selection, trigger: store.sectionFilter)
 
-                    ForEach(groups) { group in
-                        SectionHeader(title: group.section.title, count: group.tasks.count)
-                            .padding(.top, 10)
-                            .id(group.section)
-                        ForEach(Array(group.tasks.enumerated()), id: \.element.id) { offset, task in
-                            NavigationLink(value: TaskRoute.detail(taskId: task.id)) {
-                                TaskCardView(task: task,
-                                             status: store.effectiveStatus(of: task),
-                                             rejectionNote: store.rejectionNotes[task.id],
-                                             userLocation: location.location,
-                                             pendingPhotos: uploads.photos(for: task.id).filter { $0.status != .uploaded }.count)
-                                    .zoomSource(id: task.id, in: zoom)
+                    if groups.isEmpty {
+                        EmptyStateView(systemImage: "line.3.horizontal.decrease.circle", tint: Theme.neutral,
+                                       title: L10n.tr("tasks.filter.empty.title"),
+                                       message: L10n.tr("tasks.filter.empty.message")) {
+                            BigButton(title: L10n.tr("tasks.filter.showAll"), systemImage: "list.bullet", style: .secondary) {
+                                clearFilter()
                             }
-                            .buttonStyle(PressableStyle(scale: 0.98, haptic: false))
-                            .appearAnimation(index: offset + 1)
+                            .frame(maxWidth: 260)
                         }
+                        .frame(maxWidth: .infinity)
                     }
                 }
-                .padding(.horizontal, Theme.screenPadding)
-                .padding(.top, 4)
-                .padding(.bottom, 32)
-            }
-            .scrollIndicators(.hidden)
-            .overlay {
-                if store.tasks.isEmpty {
-                    emptyState
+
+                ForEach(groups) { group in
+                    SectionHeader(title: group.section.title, count: group.tasks.count)
+                        .padding(.top, 10)
+                    ForEach(Array(group.tasks.enumerated()), id: \.element.id) { offset, task in
+                        NavigationLink(value: TaskRoute.detail(taskId: task.id)) {
+                            TaskCardView(task: task,
+                                         status: store.effectiveStatus(of: task),
+                                         rejectionNote: store.rejectionNotes[task.id],
+                                         userLocation: location.location,
+                                         pendingPhotos: uploads.photos(for: task.id).filter { $0.status != .uploaded }.count)
+                                .zoomSource(id: task.id, in: zoom)
+                        }
+                        .buttonStyle(PressableStyle(scale: 0.98, haptic: false))
+                        .appearAnimation(index: offset + 1)
+                    }
                 }
             }
-            .refreshable { await store.refresh() }
+            // A vertical ScrollView is only as wide as its content: with no tasks the content is empty, so
+            // the whole list (and the empty state laid over it) collapsed to the width of the paddings.
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Theme.screenPadding)
+            .padding(.top, 4)
+            .padding(.bottom, 32)
         }
+        .scrollIndicators(.hidden)
+        .overlay {
+            if store.tasks.isEmpty {
+                emptyState
+            }
+        }
+        .refreshable { await store.refresh() }
     }
 
     @ViewBuilder
@@ -180,43 +221,83 @@ struct TaskListView: View {
 
 // MARK: - Summary
 
-/// Four-up overview of the worker's tasks; tapping a figure scrolls to that section.
+/// Four-up overview of the worker's tasks. Tapping a state toggles it in the filter; the figures always
+/// count every task in that state, whatever the filter.
 private struct SummaryCard: View {
     let counts: [TaskSection: Int]
-    let onSelect: (TaskSection) -> Void
+    let selected: Set<TaskSection>
+    let onToggle: (TaskSection) -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             ForEach(Array(TaskSection.allCases.enumerated()), id: \.element) { index, section in
                 let count = counts[section] ?? 0
+                let isSelected = selected.contains(section)
+                let shape = RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous)
                 if index > 0 {
-                    Rectangle().fill(Theme.hairline).frame(width: 1, height: 56).padding(.top, 18)
+                    Rectangle().fill(Theme.hairline).frame(width: 1, height: 56).padding(.top, 12)
                 }
-                Button { onSelect(section) } label: {
+                Button { onToggle(section) } label: {
                     VStack(spacing: 6) {
                         Text(verbatim: "\(count)")
                             .font(.system(.title, design: .rounded, weight: .bold).monospacedDigit())
                             .foregroundStyle(count > 0 ? section.color : Theme.textTertiary)
                             .contentTransition(.numericText())
                         Text(section.title)
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(Theme.textSecondary)
+                            .font(.caption.weight(isSelected ? .semibold : .medium))
+                            .foregroundStyle(isSelected ? Theme.textPrimary : Theme.textSecondary)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .minimumScaleFactor(0.8)
                     }
                     .frame(maxWidth: .infinity, minHeight: 72, alignment: .top)
                     .padding(.horizontal, 4)
-                    .padding(.top, 14)
+                    .padding(.top, 8)
+                    .background {
+                        if isSelected {
+                            shape.fill(section.color.opacity(0.16))
+                                .overlay(shape.strokeBorder(section.color.opacity(0.75), lineWidth: 1.5))
+                                .padding(.horizontal, 3)
+                        }
+                    }
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(PressableStyle(scale: 0.94))
-                .disabled(count == 0)
+                .buttonStyle(PressableStyle(scale: 0.94, haptic: false))
+                // An empty state can't be picked, but one that is already picked can always be released.
+                .disabled(count == 0 && !isSelected)
                 .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .accessibilityHint(L10n.tr("tasks.filter.hint"))
             }
         }
-        .padding(.bottom, 10)
+        .padding(6)
         .cardStyle(padding: 0)
+    }
+}
+
+/// Reminder on the map that a filter chosen in the list is hiding tasks, with the way out.
+private struct FilterActiveChip: View {
+    let sections: Set<TaskSection>
+    let onShowAll: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                .foregroundStyle(Theme.primary)
+                .accessibilityHidden(true)
+            Text(TaskSection.allCases.filter(sections.contains).map(\.title).joined(separator: L10n.tr("list.separator")))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.textPrimary)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+            Spacer(minLength: 8)
+            Button(L10n.tr("tasks.filter.showAll"), action: onShowAll)
+                .font(.subheadline.weight(.semibold))
+                .frame(minHeight: 44)
+        }
+        .padding(.horizontal, 14)
+        .glass(in: RoundedRectangle(cornerRadius: Theme.innerRadius + 2, style: .continuous))
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 }
 

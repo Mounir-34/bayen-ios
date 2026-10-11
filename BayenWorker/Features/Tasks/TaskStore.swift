@@ -12,6 +12,8 @@ final class TaskStore {
     private(set) var isLoading = false
     private(set) var lastError: APIError?
     private(set) var lastUpdated: Date?
+    /// States selected in the summary bar of "My tasks" (empty = show all). Lives as long as the app runs.
+    var sectionFilter: Set<TaskSection> = []
 
     @ObservationIgnored private let api: APIClient
     @ObservationIgnored private let uploads: UploadManager
@@ -78,6 +80,7 @@ final class TaskStore {
     func clear() {
         tasks = []
         rejectionNotes = [:]
+        sectionFilter = []
         try? FileManager.default.removeItem(at: cacheURL)
     }
 

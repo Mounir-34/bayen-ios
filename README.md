@@ -30,6 +30,7 @@ The password is `Bayen2026!` for every account (the same as `server/prisma/seed.
 | `6 00 00 00 04` | "Waiting for approval" screen |
 | `6 00 00 00 05` | "Account suspended" screen |
 | `6 00 00 00 06` | Account created by an admin: "Choose a new password" screen at first login |
+| `6 00 00 00 07` | Active worker with no tasks (empty "My tasks" screen) |
 
 For registration, use the municipality code `CASA-AINSEBAA`. A newly registered mock account is approved automatically after 15 seconds, so you can try the **Refresh** button on the pending screen.
 

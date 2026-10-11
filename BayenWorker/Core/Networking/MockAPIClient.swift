@@ -9,6 +9,7 @@ import Foundation
 /// * `06 00 00 00 04` — account pending approval
 /// * `06 00 00 00 05` — account suspended
 /// * `06 00 00 00 06` — active worker created by an admin: must choose a new password at first login
+/// * `06 00 00 00 07` — active worker with no tasks yet (empty "My tasks" screen)
 /// Newly registered accounts are auto-approved 15 seconds after registration (to demo the refresh button).
 final class MockAPIClient: APIClient, @unchecked Sendable {
     static let password = "Bayen2026!"
@@ -16,6 +17,8 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
     static let municipalityId = "6f1c1d2e-0000-4000-8000-000000000001"
     /// Aïn Sebaâ, Casablanca.
     static let center = CLLocationCoordinate2D(latitude: 33.6005, longitude: -7.5330)
+    /// Demo worker who has not been given any task yet.
+    static let workerWithoutTasksId = "6f1c1d2e-0000-4000-8000-000000000107"
 
     var onSessionProblem: (@Sendable (SessionProblem) -> Void)?
 
@@ -134,6 +137,7 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
         try await delay()
         return try withLock {
             try requireSession()
+            if currentUserId == Self.workerWithoutTasksId { return [] }
             return taskStore.values
                 .filter { status == nil ? $0.status != .cancelled : $0.status == status }
                 .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
@@ -294,6 +298,7 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
         user("6f1c1d2e-0000-4000-8000-000000000104", "عمر التازي", "+212600000004", .pending, .ar)
         user("6f1c1d2e-0000-4000-8000-000000000105", "Rachid Bennani", "+212600000005", .suspended, .fr)
         user("6f1c1d2e-0000-4000-8000-000000000106", "سعيد الإدريسي", "+212600000006", .active, .ar, mustChangePassword: true)
+        user(Self.workerWithoutTasksId, "Nadia El Fassi", "+212600000007", .active, .fr)
 
         let c = Self.center
         func task(_ n: Int, _ title: String, _ description: String, _ category: TaskCategory, dLat: Double, dLng: Double,
