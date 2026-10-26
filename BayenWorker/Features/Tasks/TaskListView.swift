@@ -240,7 +240,7 @@ private struct SummaryCard: View {
                 Button { onToggle(section) } label: {
                     VStack(spacing: 6) {
                         Text(verbatim: "\(count)")
-                            .font(.system(.title, design: .rounded, weight: .bold).monospacedDigit())
+                            .font(.system(.title, design: .serif, weight: .bold).monospacedDigit())
                             .foregroundStyle(count > 0 ? section.color : Theme.textTertiary)
                             .contentTransition(.numericText())
                         Text(section.title)
@@ -319,7 +319,7 @@ struct TaskCardView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Theme.textTertiary)
                     Text(task.title)
-                        .font(.headline)
+                        .font(.display(.headline))
                         .foregroundStyle(Theme.textPrimary)
                         .multilineTextAlignment(.leading)
                         .lineLimit(3)
@@ -420,7 +420,7 @@ struct EmptyStateView<Actions: View>: View {
             }
             .accessibilityHidden(true)
             VStack(spacing: 8) {
-                Text(title).font(.title3.weight(.bold)).foregroundStyle(Theme.textPrimary)
+                Text(title).font(.display(.title3, weight: .bold)).foregroundStyle(Theme.textPrimary)
                 Text(message).font(.subheadline).foregroundStyle(Theme.textSecondary)
             }
             .multilineTextAlignment(.center)

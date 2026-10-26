@@ -51,8 +51,8 @@ struct LoginView: View {
                     .padding(.top, 8)
                     .appearAnimation(index: 0)
 
-                BrandMark(height: 150)
-                    .padding(.top, 36)
+                BrandMark(height: 190)
+                    .padding(.top, 28)
                     .appearAnimation(index: 1)
 
                 Text(L10n.tr("login.subtitle"))
@@ -319,7 +319,7 @@ struct StateScreen<Actions: View>: View {
 
                 VStack(spacing: 10) {
                     Text(title)
-                        .font(.title2.weight(.bold))
+                        .font(.display(.title2, weight: .bold))
                         .foregroundStyle(Theme.textPrimary)
                         .multilineTextAlignment(.center)
                     Text(message)

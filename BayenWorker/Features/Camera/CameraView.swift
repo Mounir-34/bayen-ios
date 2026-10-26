@@ -149,7 +149,7 @@ struct CameraView: View {
                 // Count of photos taken
                 VStack(spacing: 2) {
                     Text(verbatim: "\(photos.count)")
-                        .font(.system(.title, design: .rounded, weight: .bold).monospacedDigit())
+                        .font(.system(.title, design: .serif, weight: .bold).monospacedDigit())
                         .contentTransition(.numericText())
                     Text(L10n.tr("camera.count"))
                         .font(.caption.weight(.medium))

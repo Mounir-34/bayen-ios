@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Surfaces & modifiers
 
 extension View {
-    /// Standard content card: solid surface, continuous corners, hairline edge and a soft two-layer shadow.
+    /// Standard content card: ivory surface, continuous corners, a lit top edge and a soft warm two-layer shadow.
     func cardStyle(padding: CGFloat? = 16, radius: CGFloat = Theme.cornerRadius) -> some View {
         modifier(CardModifier(padding: padding, radius: radius))
     }
@@ -41,6 +41,9 @@ private struct CardModifier: ViewModifier {
                     .shadow(color: Theme.shadow.opacity(0.6), radius: 1.5, x: 0, y: 1)
             }
             .overlay(shape.strokeBorder(Theme.hairline, lineWidth: 0.75))
+            .overlay(shape.inset(by: 0.75).strokeBorder(
+                LinearGradient(colors: [Theme.highlight, Theme.highlight.opacity(0)], startPoint: .top, endPoint: .center),
+                lineWidth: 1))
     }
 }
 
@@ -60,7 +63,8 @@ private struct AppearModifier: ViewModifier {
     }
 }
 
-/// Screen background with a faint brand glow at the top — gives depth without competing with content.
+/// Cream screen background with a warm sand glow and a faint brand-green one at the top — depth without
+/// competing with content, like light falling on the logo tile.
 struct AmbientBackground: View {
     var intensity: Double = 1
 
@@ -71,15 +75,15 @@ struct AmbientBackground: View {
                 let w = proxy.size.width
                 ZStack {
                     Circle()
-                        .fill(Theme.primary.opacity(0.18 * intensity))
-                        .frame(width: w * 1.1)
+                        .fill(Theme.sand.opacity(0.9 * intensity))
+                        .frame(width: w * 1.2)
                         .blur(radius: 90)
-                        .offset(x: -w * 0.35, y: -w * 0.55)
+                        .offset(x: w * 0.35, y: -w * 0.6)
                     Circle()
-                        .fill(Theme.info.opacity(0.10 * intensity))
+                        .fill(Theme.primary.opacity(0.08 * intensity))
                         .frame(width: w * 0.9)
                         .blur(radius: 100)
-                        .offset(x: w * 0.45, y: -w * 0.35)
+                        .offset(x: -w * 0.45, y: -w * 0.4)
                 }
                 .frame(width: w, height: proxy.size.height, alignment: .top)
             }
@@ -175,7 +179,7 @@ struct BigButtonLabel: View {
                     .shadow(color: Theme.primary.opacity(0.28), radius: 14, x: 0, y: 8)
             case .secondary:
                 shape.fill(Theme.cardElevated)
-                    .overlay(shape.strokeBorder(Theme.hairline, lineWidth: 1))
+                    .overlay(shape.strokeBorder(Theme.primary.opacity(0.22), lineWidth: 1))
                     .shadow(color: Theme.shadow, radius: 8, x: 0, y: 3)
             case .tinted:
                 shape.fill(Theme.primary.opacity(0.1))
@@ -310,8 +314,8 @@ struct SectionHeader: View {
                 Image(systemName: systemImage).font(.footnote.weight(.semibold)).foregroundStyle(Theme.textTertiary)
             }
             Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.textSecondary)
+                .font(.display(.headline))
+                .foregroundStyle(Theme.textPrimary)
             if let count {
                 Text(verbatim: "\(count)")
                     .font(.caption.weight(.bold).monospacedDigit())

@@ -92,7 +92,7 @@ struct ProfileView: View {
                 Monogram(name: user.fullName, size: 68)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(user.fullName)
-                        .font(.title3.weight(.bold))
+                        .font(.display(.title3, weight: .bold))
                         .foregroundStyle(Theme.textPrimary)
                     Text(verbatim: PhoneNumber.display(user.phone))
                         .font(.subheadline.weight(.medium).monospacedDigit())
@@ -140,7 +140,7 @@ struct ProfileView: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(value > 0 ? Theme.warning : Theme.success)
             Text(verbatim: "\(value)")
-                .font(.system(.title, design: .rounded, weight: .bold).monospacedDigit())
+                .font(.system(.title, design: .serif, weight: .bold).monospacedDigit())
                 .foregroundStyle(Theme.textPrimary)
                 .contentTransition(.numericText())
             Text(title)
@@ -169,7 +169,7 @@ struct Monogram: View {
 
     var body: some View {
         Text(verbatim: initials.isEmpty ? "?" : initials)
-            .font(.system(size: size * 0.36, weight: .semibold, design: .rounded))
+            .font(.system(size: size * 0.36, weight: .semibold, design: .serif))
             .foregroundStyle(Theme.onPrimary)
             .frame(width: size, height: size)
             .background(Circle().fill(Theme.primaryGradient))

@@ -140,7 +140,7 @@ struct TaskDetailView: View {
                 }
             }
             Text(task.title)
-                .font(.title2.weight(.bold))
+                .font(.display(.title2, weight: .bold))
                 .foregroundStyle(Theme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -344,7 +344,7 @@ struct RequirementsSummary: View {
                              color: requirement.isMet ? Theme.success : Theme.primary, lineWidth: 6, size: 64)
                 VStack(spacing: 0) {
                     Text(verbatim: "\(requirement.total)")
-                        .font(.system(.title3, design: .rounded, weight: .bold).monospacedDigit())
+                        .font(.system(.title3, design: .serif, weight: .bold).monospacedDigit())
                         .contentTransition(.numericText())
                     Text(verbatim: "/ \(requirement.minimum)")
                         .font(.caption2.weight(.semibold).monospacedDigit())

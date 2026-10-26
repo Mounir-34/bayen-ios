@@ -51,7 +51,7 @@ struct ChangePasswordView: View {
 
                 VStack(spacing: 10) {
                     Text(L10n.tr("changePassword.title"))
-                        .font(.title2.weight(.bold))
+                        .font(.display(.title2, weight: .bold))
                         .foregroundStyle(Theme.textPrimary)
                         .multilineTextAlignment(.center)
                     Text(L10n.tr("changePassword.message"))

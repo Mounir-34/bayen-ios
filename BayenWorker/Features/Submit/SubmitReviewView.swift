@@ -135,7 +135,7 @@ struct SubmitReviewView: View {
                             .foregroundStyle(Theme.textSecondary)
                     }
                     Text(task.title)
-                        .font(.title2.weight(.bold))
+                        .font(.display(.title2, weight: .bold))
                         .foregroundStyle(Theme.textPrimary)
                 }
                 .appearAnimation(index: 0)

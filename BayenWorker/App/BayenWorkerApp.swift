@@ -5,6 +5,14 @@ import SwiftUI
 struct BayenWorkerApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
+    init() {
+        // Serif navigation titles in the wordmark's ink, matching the house style.
+        let ink = UIColor(Theme.ink)
+        let bar = UINavigationBar.appearance()
+        bar.largeTitleTextAttributes = [.font: UIFont.display(.largeTitle, weight: .bold), .foregroundColor: ink]
+        bar.titleTextAttributes = [.font: UIFont.display(.headline, weight: .semibold), .foregroundColor: ink]
+    }
+
     var body: some Scene {
         WindowGroup {
             if AppConfig.isRunningTests {
