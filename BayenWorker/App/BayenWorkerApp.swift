@@ -7,10 +7,23 @@ struct BayenWorkerApp: App {
 
     init() {
         // Serif navigation titles in the wordmark's ink, matching the house style.
+        // Set on appearance objects: the bare proxy attributes get dropped whenever the bar reconfigures
+        // (e.g. switching the task list to the map), and the title fell back to the system font.
         let ink = UIColor(Theme.ink)
+        func styled(_ appearance: UINavigationBarAppearance) -> UINavigationBarAppearance {
+            appearance.largeTitleTextAttributes = [.font: UIFont.display(.largeTitle, weight: .bold), .foregroundColor: ink]
+            appearance.titleTextAttributes = [.font: UIFont.display(.headline, weight: .semibold), .foregroundColor: ink]
+            return appearance
+        }
+        let edge = UINavigationBarAppearance()
+        edge.configureWithTransparentBackground()
+        let standard = UINavigationBarAppearance()
+        // iOS 26 bars stay transparent and fade content with the scroll edge effect; earlier ones blur.
+        if #available(iOS 26.0, *) { standard.configureWithTransparentBackground() } else { standard.configureWithDefaultBackground() }
         let bar = UINavigationBar.appearance()
-        bar.largeTitleTextAttributes = [.font: UIFont.display(.largeTitle, weight: .bold), .foregroundColor: ink]
-        bar.titleTextAttributes = [.font: UIFont.display(.headline, weight: .semibold), .foregroundColor: ink]
+        bar.standardAppearance = styled(standard)
+        bar.compactAppearance = styled(standard.copy())
+        bar.scrollEdgeAppearance = styled(edge)
     }
 
     var body: some Scene {
@@ -28,6 +41,7 @@ struct BayenWorkerApp: App {
 private struct AppRoot: View {
     let env: AppEnvironment
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
 
     var body: some View {
         RootView()
@@ -46,5 +60,7 @@ private struct AppRoot: View {
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { env.uploads.kick() }
             }
+            .onAppear { appearance.apply() }
+            .onChange(of: appearance) { _, new in new.apply() }
     }
 }

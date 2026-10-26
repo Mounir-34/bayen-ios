@@ -67,19 +67,17 @@ struct TaskListView: View {
             .navigationTitle(L10n.tr("tasks.title"))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    BrandEmblem(size: 30)
+                    // The emblem doubles as the way home: from the map it brings the list back.
+                    Button { showMap = false } label: {
+                        BrandEmblem(size: 30)
+                    }
+                    .buttonStyle(PressableStyle(scale: 0.9, haptic: showMap))
+                    .accessibilityLabel(L10n.tr("tasks.view.list"))
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Picker(selection: $showMap) {
-                        Label(L10n.tr("tasks.view.list"), systemImage: "list.bullet").tag(false)
-                        Label(L10n.tr("tasks.view.map"), systemImage: "map").tag(true)
-                    } label: {
-                        Text(L10n.tr("tasks.view"))
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 112)
-                    .sensoryFeedback(.selection, trigger: showMap)
+                    ViewModeSwitch(showMap: $showMap)
                 }
+                .hidingSharedGlass()
             }
             .navigationDestination(for: TaskRoute.self) { route in
                 switch route {
@@ -88,6 +86,10 @@ struct TaskListView: View {
                 }
             }
         }
+        // Decided here rather than on the pushed screens: a pushed screen's `.hidden` only lets go once the pop
+        // animation has finished, which made the tab bar come back with a lag.
+        .toolbar(router.path.isEmpty ? .visible : .hidden, for: .tabBar)
+        .animation(Motion.snappy, value: router.path.isEmpty)
         .task {
             location.start()
             if store.tasks.isEmpty || (store.lastUpdated.map { Date().timeIntervalSince($0) > 60 } ?? true) {
@@ -216,6 +218,61 @@ struct TaskListView: View {
     private var lastUpdatedText: String? {
         guard let date = store.lastUpdated else { return nil }
         return L10n.tr("tasks.lastUpdated", date.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(L10n.locale)))
+    }
+}
+
+// MARK: - View mode
+
+/// List/map switch: one ivory capsule with a green pill sliding under the chosen mode.
+private struct ViewModeSwitch: View {
+    @Binding var showMap: Bool
+    @Namespace private var pill
+
+    var body: some View {
+        HStack(spacing: 2) {
+            segment(map: false, systemImage: "list.bullet", label: L10n.tr("tasks.view.list"))
+            segment(map: true, systemImage: "map", label: L10n.tr("tasks.view.map"))
+        }
+        .padding(3)
+        .background(Theme.cardElevated, in: Capsule())
+        .overlay(Capsule().strokeBorder(Theme.hairline, lineWidth: 0.75))
+        .shadow(color: Theme.shadow, radius: 8, x: 0, y: 3)
+        .sensoryFeedback(.selection, trigger: showMap)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(L10n.tr("tasks.view"))
+    }
+
+    private func segment(map: Bool, systemImage: String, label: String) -> some View {
+        let selected = showMap == map
+        return Button {
+            withAnimation(Motion.snappy) { showMap = map }
+        } label: {
+            Image(systemName: systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(selected ? Theme.onPrimary : Theme.textSecondary)
+                .frame(width: 46, height: 36)
+                .background {
+                    if selected {
+                        Capsule().fill(Theme.primaryGradient).matchedGeometryEffect(id: "pill", in: pill)
+                    }
+                }
+                .contentShape(Capsule())
+        }
+        .buttonStyle(PressableStyle(scale: 0.92, haptic: false))
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+private extension ToolbarContent {
+    /// On iOS 26 toolbar items sit on a shared glass capsule; the switch draws its own, so it would be doubled.
+    @ToolbarContentBuilder
+    func hidingSharedGlass() -> some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            sharedBackgroundVisibility(.hidden)
+        } else {
+            self
+        }
     }
 }
 

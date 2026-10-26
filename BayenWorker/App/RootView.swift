@@ -100,9 +100,10 @@ struct BrandPin: View {
                     lineWidth: max(1, height * 0.012)))
                 .shadow(color: Theme.shadow, radius: height * 0.06, x: 0, y: height * 0.04)
             CheckShape()
-                .stroke(Color(light: UIColor(hex: 0xFBF8F1), dark: UIColor(hex: 0xF4F0E6)),
+                .stroke(Color(light: .white, dark: UIColor(hex: 0xF7F4EC)),
                         style: StrokeStyle(lineWidth: width * 0.13, lineCap: .round, lineJoin: .round))
-                .shadow(color: .black.opacity(0.22), radius: height * 0.015, x: 0, y: height * 0.012)
+                // Kept faint: at toolbar size a darker shadow muddies the check to grey.
+                .shadow(color: .black.opacity(0.12), radius: height * 0.01, x: 0, y: height * 0.008)
                 .frame(width: width * 0.48, height: width * 0.32)
                 .offset(y: -height * 0.1)
         }

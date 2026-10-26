@@ -23,6 +23,13 @@ struct ProfileView: View {
                     .cardStyle(padding: 16)
                     .appearAnimation(index: 1)
 
+                    VStack(alignment: .leading, spacing: 12) {
+                        SectionHeader(title: L10n.tr("profile.appearance"), systemImage: "paintpalette")
+                        AppearancePicker()
+                    }
+                    .cardStyle(padding: 16)
+                    .appearAnimation(index: 1)
+
                     uploadsCard
                         .appearAnimation(index: 2)
 

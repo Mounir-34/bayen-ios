@@ -107,7 +107,6 @@ struct SubmitReviewView: View {
         .animation(Motion.spring, value: model.phase)
         .navigationTitle(L10n.tr("submit.title"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(model.phase != .editing)
         .sensoryFeedback(trigger: model.phase) { _, phase in
             switch phase {

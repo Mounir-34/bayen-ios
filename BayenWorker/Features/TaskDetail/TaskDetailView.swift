@@ -35,7 +35,6 @@ struct TaskDetailView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AmbientBackground(intensity: 0.45))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar)
         .task {
             location.start()
             if let task = store.task(id: taskId) { location.simulateArrival(at: task.coordinate) }

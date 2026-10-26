@@ -162,6 +162,75 @@
         }
       }
     },
+    "appearance.dark": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "داكن"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sombre"
+          }
+        }
+      }
+    },
+    "appearance.light": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فاتح"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clair"
+          }
+        }
+      }
+    },
+    "appearance.system": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تلقائي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        }
+      }
+    },
     "camera.count": {
       "extractionState": "manual",
       "localizations": {
@@ -2646,6 +2715,29 @@
         }
       }
     },
+    "profile.appearance": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المظهر"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apparence"
+          }
+        }
+      }
+    },
     "profile.logout": {
       "extractionState": "manual",
       "localizations": {
@@ -4101,24 +4193,6 @@
         "ar": {
           "variations": {
             "plural": {
-              "zero": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "لا توجد صور في انتظار الإرسال"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "صورة واحدة في انتظار الإرسال"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "صورتان في انتظار الإرسال"
-                }
-              },
               "few": {
                 "stringUnit": {
                   "state": "translated",
@@ -4131,10 +4205,28 @@
                   "value": "%lld صورة في انتظار الإرسال"
                 }
               },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "صورة واحدة في انتظار الإرسال"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld صورة في انتظار الإرسال"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "صورتان في انتظار الإرسال"
+                }
+              },
+              "zero": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "لا توجد صور في انتظار الإرسال"
                 }
               }
             }
@@ -4161,16 +4253,16 @@
         "fr": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld photo en attente d'envoi"
-                }
-              },
               "many": {
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld photos en attente d'envoi"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld photo en attente d'envoi"
                 }
               },
               "other": {
@@ -4213,24 +4305,6 @@
         "ar": {
           "variations": {
             "plural": {
-              "zero": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "لا يوجد عمل في الانتظار"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "عمل واحد في انتظار الإرسال"
-                }
-              },
-              "two": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "عملان في انتظار الإرسال"
-                }
-              },
               "few": {
                 "stringUnit": {
                   "state": "translated",
@@ -4243,10 +4317,28 @@
                   "value": "%lld عملًا في انتظار الإرسال"
                 }
               },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "عمل واحد في انتظار الإرسال"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld عمل في انتظار الإرسال"
+                }
+              },
+              "two": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "عملان في انتظار الإرسال"
+                }
+              },
+              "zero": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "لا يوجد عمل في الانتظار"
                 }
               }
             }
@@ -4273,16 +4365,16 @@
         "fr": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld travail en attente d'envoi"
-                }
-              },
               "many": {
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld travaux en attente d'envoi"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld travail en attente d'envoi"
                 }
               },
               "other": {
